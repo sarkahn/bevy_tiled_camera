@@ -3,8 +3,10 @@ name = "bevy_tiled_camera"
 version = "0.1.0"
 edition = "2021"
 authors = ["sark"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+homepage = "https://github.com/sarkahn/bevy_tiled_camera"
+repository = "https://github.com/sarkahn/bevy_tiled_camera"
+license = "MIT"
+exclude = ["images/*"]
 
 [dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy", branch = "pipelined-rendering" }

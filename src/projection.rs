@@ -7,7 +7,7 @@ use bevy::{
 /// The camera view will be scaled up to fill the window as much as possible while displaying
 /// your target tile count and not deforming pixels.
 ///
-/// Note that this projection assumes the size of one *tile* is equal to one world unit. This is
+/// Note that this projection assumes the size of one tile is equal to one world unit. This is
 /// different than Bevy's default 2D orthographic camera which assumes one *pixel* is equal to one
 /// world unit.
 pub struct TiledProjection {
