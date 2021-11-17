@@ -22,4 +22,4 @@ You can change the camera settings at any time by adjusting the `TiledProjection
 
 ## Bevy Version
 
-This crate is currently built on the render-pipeline branch of bevy.
+This crate is currently built on the pipelined-rendering branch of bevy.
