@@ -14,7 +14,7 @@ use bevy::{
     PipelinedDefaultPlugins,
 };
 
-use bevy_pixelcam::{self, projection::TiledProjection, TiledCameraBuilder, TiledCameraPlugin};
+use bevy_tiled_camera::{TiledProjection, TiledCameraBuilder, TiledCameraPlugin};
 
 fn main() {
     App::new()

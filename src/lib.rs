@@ -18,7 +18,7 @@ use bevy::render2::{
     primitives::Frustum,
     view::VisibleEntities,
 };
-use projection::TiledProjection;
+pub use projection::TiledProjection;
 
 pub mod projection;
 
