@@ -19,7 +19,3 @@ commands.spawn(camera_bundle);
 ```
 
 You can change the camera settings at any time by adjusting the `TiledProjection` component on the camera entity.
-
-## Bevy Version
-
-This crate is currently built on the pipelined-rendering branch of bevy.

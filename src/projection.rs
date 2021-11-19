@@ -1,6 +1,6 @@
 use bevy::{
     prelude::*,
-    render2::camera::{CameraProjection, DepthCalculation},
+    render::camera::{CameraProjection, DepthCalculation},
 };
 
 /// A projection which will adjust itself based on your target pixels per tile and tile count.
@@ -28,6 +28,13 @@ impl TiledProjection {
     /// Refers to how much the view is scaled up based on your pixels per tile and tile count settings.
     pub fn zoom(&self) -> u32 {
         self.zoom
+    }
+    pub fn width(&self) -> u32 {
+        (self.right - self.left) as u32
+    }
+
+    pub fn height(&self) -> u32 {
+        (self.top - self.bottom) as u32
     }
 }
 
@@ -57,17 +64,22 @@ impl CameraProjection for TiledProjection {
             self.top,
             // NOTE: near and far are swapped to invert the depth range from [0,1] to [1,0]
             // This is for interoperability with pipelines using infinite reverse perspective projections.
-            self.far,
             self.near,
+            self.far,
         )
     }
 
     fn update(&mut self, width: f32, height: f32) {
         let aspect = width / height;
 
+        let mut tile_count = Vec2::new(self.target_tile_count.x as f32, self.target_tile_count.y as f32);
+
         let tile_count = match self.centered {
             // Ensure our tile count is always a multiple of two for correct rendering with a centered camera
-            true => ((self.target_tile_count.as_vec2() / 2.0).ceil() * 2.0).as_uvec2(),
+            true => {
+                tile_count = (tile_count / 2.0).ceil() * 2.0;
+                UVec2::new(tile_count.x as u32, tile_count.y as u32)
+            },
             false => self.target_tile_count,
         };
 
@@ -85,15 +97,15 @@ impl CameraProjection for TiledProjection {
 
             // Ensure our "edges" are sitting on the pixel grid, so sprites that also sit on the grid will render properly
             let pixel_size = 1.0 / self.pixels_per_tile as f32;
-            let half_width = width / 2.0;
-            let half_width = -round_to_multiple(half_width, pixel_size);
-            let half_height = height / 2.0;
-            let half_height = -round_to_multiple(half_height, pixel_size);
+            let left = width / 2.0;
+            let left = -round_to_multiple(left, pixel_size);
+            let bottom = height / 2.0;
+            let bottom = -round_to_multiple(bottom, pixel_size);
 
-            self.left = half_width;
-            self.right = half_width + width;
-            self.bottom = half_height;
-            self.top = half_height + height;
+            self.left = left;
+            self.right = left + width;
+            self.bottom = bottom;
+            self.top = bottom + height;
         } else {
             self.left = 0.0;
             self.bottom = 0.0;
@@ -104,9 +116,5 @@ impl CameraProjection for TiledProjection {
 
     fn depth_calculation(&self) -> DepthCalculation {
         DepthCalculation::ZDifference
-    }
-
-    fn far(&self) -> f32 {
-        self.far
     }
 }

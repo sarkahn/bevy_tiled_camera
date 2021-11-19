@@ -9,4 +9,4 @@ license = "MIT"
 exclude = ["images/*"]
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", branch = "pipelined-rendering" }
+bevy = "0.5"

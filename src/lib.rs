@@ -1,7 +1,7 @@
 //! A simple camera for properly displaying low resolution pixel perfect 2D games.
 //!
 //! ## Example
-//! ```
+//! ```ignore
 //! // Sets up a camera to display 80 x 25 tiles. The viewport will be scaled up
 //! // as much as possible to fit the window size and maintain the appearance of
 //! // 8 pixels per tile.
@@ -12,22 +12,21 @@
 //!
 //! commands.spawn(camera_bundle);
 //! ```
+use bevy::render::camera::VisibleEntities;
 use bevy::prelude::*;
-use bevy::render2::{
-    camera::{self, Camera, CameraPlugin},
-    primitives::Frustum,
-    view::VisibleEntities,
+use bevy::render::{
+    camera::{self, Camera},
 };
-pub use projection::TiledProjection;
-
 pub mod projection;
+
+pub use projection::TiledProjection;
 
 pub struct TiledCameraPlugin;
 
 /// Provides a simple way to set initial parameters for the tiled camera.
 ///
 /// # Example
-/// ```
+/// ```ignore
 /// // Sets up the camera to render 80 tiles by 25 tiles, with each tile
 /// // being 8 pixels high.
 /// let camera_bundle = TiledCameraBuilder::new()
@@ -46,30 +45,29 @@ pub struct TiledCameraBundle {
     pub camera: Camera,
     pub projection: TiledProjection,
     pub visible_entities: VisibleEntities,
-    pub frustum: Frustum,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
 }
 
 impl Plugin for TiledCameraPlugin {
-    fn build(&self, app: &mut App) {
+    fn build(&self, app: &mut AppBuilder) {
         app.add_system_to_stage(
             CoreStage::PostUpdate,
-            camera::camera_system::<TiledProjection>,
+            camera::camera_system::<TiledProjection>.system(),
         );
     }
 }
 
 impl Default for TiledCameraBundle {
     fn default() -> Self {
+        let name = Some(bevy::render::render_graph::base::camera::CAMERA_2D.to_string());
         TiledCameraBundle {
             camera: Camera {
-                name: Some(CameraPlugin::CAMERA_2D.to_string()),
+                name,
                 ..Default::default()
             },
             projection: Default::default(),
             visible_entities: Default::default(),
-            frustum: Default::default(),
             transform: Default::default(),
             global_transform: Default::default(),
         }
