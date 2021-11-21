@@ -49,7 +49,7 @@ impl Default for TiledProjection {
             far: 1000.0,
             zoom: 1,
             centered: true,
-            target_tile_count: UVec2::ONE,
+            target_tile_count: UVec2::new(18,10),
             pixels_per_tile: 8,
         }
     }
@@ -64,8 +64,8 @@ impl CameraProjection for TiledProjection {
             self.top,
             // NOTE: near and far are swapped to invert the depth range from [0,1] to [1,0]
             // This is for interoperability with pipelines using infinite reverse perspective projections.
-            self.near,
             self.far,
+            self.near,
         )
     }
 

@@ -5,7 +5,7 @@
 // /// Arrow Keys - Adjust the number of tiles
 // /// Tab - Change the current tile textures
 
-use bevy_tiled_camera::{ TiledProjection, TiledCameraBuilder, TiledCameraPlugin };
+use bevy_tiled_camera::{ TiledProjection, TiledCameraBundle, TiledCameraPlugin };
 use bevy::prelude::*;
 
 fn main() {
@@ -33,10 +33,10 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>
 ) {
-    let cam_bundle = TiledCameraBuilder::new()
+    let cam_bundle = TiledCameraBundle::new()
         .with_centered(true)
-        .with_tile_settings(8, (10, 10).into())
-        .camera_bundle;
+        .with_pixels_per_tile(8)
+        .with_tile_count((10,10).into());
 
     commands.spawn_bundle(cam_bundle);
 
