@@ -1,9 +1,9 @@
-// /// A simple interactive demo. Resize the window to see the viewport auto-adjust.
-// ///
-// /// # Controls:
-// /// Spacebar - Toggle camera between centered or bottom-left origin
-// /// Arrow Keys - Adjust the number of tiles
-// /// Tab - Change the current tile textures
+/// A simple interactive demo. Resize the window to see the viewport auto-adjust.
+///
+/// # Controls:
+/// Spacebar - Toggle camera between centered or bottom-left origin
+/// Arrow Keys - Adjust the number of tiles
+/// Tab - Change the current tile textures
 
 use bevy::prelude::*;
 use bevy_tiled_camera::{TiledCameraBundle, TiledCameraPlugin, TiledProjection};
