@@ -1,10 +1,10 @@
 //! A simple camera for properly displaying low resolution pixel perfect 2D games in bevy.
-//! 
+//!
 //! ## Example
 //! ```
 //! use bevy_tiled_camera::*;
 //! use bevy::prelude::*;
-//! 
+//!
 //! fn setup(mut commands:Commands) {
 //!   // Sets up a camera to display 80 x 25 tiles. The viewport will be scaled up
 //!   // as much as possible to fit the window size and maintain the appearance of
@@ -16,7 +16,7 @@
 //!
 //!   commands.spawn_bundle(camera_bundle);
 //! }
-//! 
+//!
 //! fn main() {
 //!     App::build()
 //!         .add_plugins(DefaultPlugins)
@@ -25,11 +25,9 @@
 //! }
 //! ```
 
-use bevy::render::camera::VisibleEntities;
 use bevy::prelude::*;
-use bevy::render::{
-    camera::{self, Camera},
-};
+use bevy::render::camera::VisibleEntities;
+use bevy::render::camera::{self, Camera};
 
 pub mod projection;
 
@@ -91,7 +89,7 @@ impl TiledCameraBundle {
         self.projection.centered = centered;
         self
     }
-    
+
     /// Camera will be scaled to be as close as possible to the given target resolution given
     /// pixels per tile.
     pub fn with_target_resolution(self, pixels_per_tile: u32, resolution: UVec2) -> Self {

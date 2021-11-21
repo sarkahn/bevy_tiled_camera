@@ -49,7 +49,7 @@ impl Default for TiledProjection {
             far: 1000.0,
             zoom: 1,
             centered: true,
-            target_tile_count: UVec2::new(18,10),
+            target_tile_count: UVec2::new(18, 10),
             pixels_per_tile: 8,
         }
     }
@@ -72,14 +72,17 @@ impl CameraProjection for TiledProjection {
     fn update(&mut self, width: f32, height: f32) {
         let aspect = width / height;
 
-        let mut tile_count = Vec2::new(self.target_tile_count.x as f32, self.target_tile_count.y as f32);
+        let mut tile_count = Vec2::new(
+            self.target_tile_count.x as f32,
+            self.target_tile_count.y as f32,
+        );
 
         let tile_count = match self.centered {
             // Ensure our tile count is always a multiple of two for correct rendering with a centered camera
             true => {
                 tile_count = (tile_count / 2.0).ceil() * 2.0;
                 UVec2::new(tile_count.x as u32, tile_count.y as u32)
-            },
+            }
             false => self.target_tile_count,
         };
 

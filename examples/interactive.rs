@@ -1,12 +1,12 @@
 // /// A simple interactive demo. Resize the window to see the viewport auto-adjust.
-// /// 
+// ///
 // /// # Controls:
 // /// Spacebar - Toggle camera between centered or bottom-left origin
 // /// Arrow Keys - Adjust the number of tiles
 // /// Tab - Change the current tile textures
 
-use bevy_tiled_camera::{ TiledProjection, TiledCameraBundle, TiledCameraPlugin };
 use bevy::prelude::*;
+use bevy_tiled_camera::{TiledCameraBundle, TiledCameraPlugin, TiledProjection};
 
 fn main() {
     App::build()
@@ -29,14 +29,14 @@ struct TileCount {
 }
 
 fn setup(
-    mut commands: Commands, 
+    mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let cam_bundle = TiledCameraBundle::new()
         .with_centered(true)
         .with_pixels_per_tile(8)
-        .with_tile_count((10,10).into());
+        .with_tile_count((10, 10).into());
 
     commands.spawn_bundle(cam_bundle);
 
