@@ -1,3 +1,6 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
 # Bevy Tiled Camera
 
 A simple camera for properly displaying low resolution pixel perfect 2D games in bevy. The camera will adjust the viewport to scale up your target resolution as much as possible without causing visual artifacts.
@@ -33,3 +36,7 @@ You can change the camera settings at any time by adjusting the `TiledProjection
 
 ## World Space
 Note that this projection assumes the size of one tile is equal to one world unit. This is different than Bevy's default 2D orthographic camera which assumes one *pixel* is equal to one world unit.
+
+| bevy | bevy_tiled_camera |
+| --- | --- |
+| 0.5 | 0.2 |

@@ -1,3 +1,30 @@
+//! A simple camera for properly displaying low resolution pixel perfect 2D games in bevy.
+//! 
+//! ## Example
+//! ```
+//! use bevy_tiled_camera::*;
+//! use bevy::prelude::*;
+//! 
+//! fn setup(mut commands:Commands) {
+//!   // Sets up a camera to display 80 x 25 tiles. The viewport will be scaled up
+//!   // as much as possible to fit the window size and maintain the appearance of
+//!   // 8 pixels per tile.
+//!   let camera_bundle = TiledCameraBundle::new()
+//!       .with_pixels_per_tile(8)
+//!       .with_tile_count((80,25).into()
+//!   );
+//!
+//!   commands.spawn_bundle(camera_bundle);
+//! }
+//! 
+//! fn main() {
+//!     App::build()
+//!         .add_plugins(DefaultPlugins)
+//!         .add_plugin(TiledCameraPlugin)
+//!         .run();
+//! }
+//! ```
+
 use bevy::render::camera::VisibleEntities;
 use bevy::prelude::*;
 use bevy::render::{
@@ -40,16 +67,19 @@ impl TiledCameraBundle {
         TiledCameraBundle::default()
     }
 
+    /// Sets up the projection to display 8 pixels per tile.
     pub fn with_pixels_per_tile(mut self, pixels_per_tile: u32) -> Self {
         self.projection.pixels_per_tile = pixels_per_tile;
         self
     }
 
+    /// Sets the projection to display the given tile count.
     pub fn with_tile_count(mut self, tile_count: UVec2) -> Self {
         self.projection.target_tile_count = tile_count;
         self
     }
 
+    /// Sets the camera position on spawn.
     pub fn with_camera_position(mut self, position: Vec2) -> Self {
         let old_pos = self.transform.translation;
         self.transform.translation = position.extend(old_pos.z);
