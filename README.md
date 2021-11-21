@@ -1,7 +1,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Crates.io](https://img.shields.io/crates/v/bevy_tiled_camera)](https://crates.io/crates/bevy_tiled_camera)
+[![docs](https://docs.rs/bevy_tiled_camera/badge.svg)](https://docs.rs/bevy_tiled_camera/)
 
 
-# Bevy Tiled Camera
+
+# `Bevy Tiled Camera`
 
 A simple camera for properly displaying low resolution pixel perfect 2D games in bevy. The camera will adjust the viewport to scale up your target resolution as much as possible without causing visual artifacts.
 
