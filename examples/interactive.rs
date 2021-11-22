@@ -35,7 +35,7 @@ fn setup(
     let cam_bundle = TiledCameraBundle::new()
         .with_centered(true)
         .with_pixels_per_tile(8)
-        .with_tile_count((10, 10).into());
+        .with_tile_count((10, 10));
 
     commands.spawn_bundle(cam_bundle);
 
