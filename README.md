@@ -52,8 +52,8 @@ Note that this projection assumes the size of one tile is equal to one world uni
 ## Versions
 | bevy | bevy_tiled_camera |
 | --- | --- |
-| 0.5 | 0.3 |
-| 0.5 | 0.2 |
+| 0.5 | 0.2.4 |
+| 0.5 | 0.2.3 |
 
 *There is currently a bug in bevy version 0.5 where the camera projection
 does not update unless you actively resize the window.*
