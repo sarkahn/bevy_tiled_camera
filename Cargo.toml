@@ -9,7 +9,7 @@ license = "MIT"
 exclude = ["images/*"]
 description = "A simple camera for properly displaying low resolution pixel perfect 2D games in bevy."
 readme = "README.md"
-keywords = ["bevy", "camera", "pixel-perfect", "low resolution", "2d"]
+keywords = ["bevy", "camera", "pixel-perfect", "low-resolution", "2d"]
 
 [dependencies]
 bevy = "0.5"
