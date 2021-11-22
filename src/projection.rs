@@ -3,13 +3,18 @@ use bevy::{
     render::camera::{CameraProjection, DepthCalculation},
 };
 
-/// A projection which will adjust itself based on your target pixels per tile and tile count.
+/// A camera projection which divides the view into a set number of tiles.
+///
+/// The projection will adjust itself based on your target pixels per tile and tile count.
 /// The camera view will be scaled up to fill the window as much as possible while displaying
 /// your target tile count and not deforming pixels.
 ///
 /// Note that this projection assumes the size of one tile is equal to one world unit. This is
 /// different than Bevy's default 2D orthographic camera which assumes one *pixel* is equal to one
 /// world unit.
+///
+/// *There is currently a bug in bevy version 0.5 which prevents the view from updating
+/// unless you manually resize the window.*
 pub struct TiledProjection {
     pub left: f32,
     pub right: f32,
