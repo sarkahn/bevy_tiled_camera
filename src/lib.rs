@@ -101,14 +101,16 @@ impl TiledCameraBundle {
 impl Default for TiledCameraBundle {
     fn default() -> Self {
         let name = Some(bevy::render::render_graph::base::camera::CAMERA_2D.to_string());
+        let projection = TiledProjection::default();
+        let transform = Transform::from_xyz(0.0, 0.0, projection.far - 0.1);
         TiledCameraBundle {
             camera: Camera {
                 name,
                 ..Default::default()
             },
-            projection: Default::default(),
+            projection,
+            transform,
             visible_entities: Default::default(),
-            transform: Default::default(),
             global_transform: Default::default(),
         }
     }
