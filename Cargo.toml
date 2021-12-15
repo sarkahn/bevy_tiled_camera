@@ -7,4 +7,4 @@ authors = ["sark"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", branch = "pipelined-rendering" }
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "add1818a05ad4b8d4672197afd477ab29f8446b5" }

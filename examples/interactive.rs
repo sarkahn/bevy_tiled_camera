@@ -9,16 +9,16 @@ use bevy::{
     input::Input,
     math::{IVec2, UVec2, Vec2},
     prelude::{App, AssetServer, Handle, KeyCode, Transform},
-    render2::texture::Image,
-    sprite2::{PipelinedSpriteBundle, Sprite},
-    PipelinedDefaultPlugins,
+    render::texture::Image,
+    sprite::{SpriteBundle, Sprite},
+    DefaultPlugins,
 };
 
 use bevy_tiled_camera::{TiledProjection, TiledCameraBuilder, TiledCameraPlugin};
 
 fn main() {
     App::new()
-        .add_plugins(PipelinedDefaultPlugins)
+        .add_plugins(DefaultPlugins)
         .add_plugin(TiledCameraPlugin)
         .add_startup_system(setup)
         .add_system(handle_input)
@@ -32,6 +32,8 @@ struct SpriteTextures {
     pub tex_32x32: Handle<Image>,
     pub current: u32,
 }
+
+#[derive(Component)]
 struct TileCount {
     pub count: UVec2,
 }
@@ -146,7 +148,7 @@ fn spawn_sprites(
                 };
                 let transform = Transform::from_xyz(x as f32 + 0.5, y as f32 + 0.5, 0.0);
 
-                let bundle = PipelinedSpriteBundle {
+                let bundle = SpriteBundle {
                     sprite,
                     texture,
                     transform,

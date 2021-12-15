@@ -13,7 +13,7 @@
 //! commands.spawn(camera_bundle);
 //! ```
 use bevy::prelude::*;
-use bevy::render2::{
+use bevy::render::{
     camera::{self, Camera, CameraPlugin},
     primitives::Frustum,
     view::VisibleEntities,

@@ -1,6 +1,6 @@
 use bevy::{
     prelude::*,
-    render2::camera::{CameraProjection, DepthCalculation},
+    render::camera::{CameraProjection, DepthCalculation},
 };
 
 /// A projection which will adjust itself based on your target pixels per tile and tile count.
@@ -10,6 +10,7 @@ use bevy::{
 /// Note that this projection assumes the size of one *tile* is equal to one world unit. This is
 /// different than Bevy's default 2D orthographic camera which assumes one *pixel* is equal to one
 /// world unit.
+#[derive(Component)]
 pub struct TiledProjection {
     pub left: f32,
     pub right: f32,
