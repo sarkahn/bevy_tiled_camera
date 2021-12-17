@@ -8,13 +8,13 @@ use bevy::{
     ecs::prelude::*,
     input::Input,
     math::{IVec2, UVec2, Vec2},
-    prelude::{App, AssetServer, Handle, KeyCode, Transform, GlobalTransform},
+    prelude::*,
     render::texture::Image,
     sprite::{SpriteBundle, Sprite},
-    DefaultPlugins,
+    DefaultPlugins, pbr::PbrBundle,
 };
 
-use bevy_tiled_camera::{TiledProjection, TiledCameraBuilder, TiledCameraPlugin, TiledCamera};
+use bevy_tiled_camera::{TiledProjection, TiledCameraPlugin, TiledCameraBundle};
 
 fn main() {
     App::new()
@@ -38,24 +38,42 @@ struct TileCount {
     pub count: UVec2,
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let cam_bundle = TiledCameraBuilder::new()
+fn setup(
+    mut commands: Commands, 
+    asset_server: Res<AssetServer>,
+) {
+    let cam_bundle = TiledCameraBundle::new()
         .with_centered(true)
-        .with_tile_settings(8, (10, 10).into())
-        .camera_bundle;
+        .with_pixels_per_tile(8)
+        .with_tile_count((10,10));
 
     commands.spawn_bundle(cam_bundle);
 
-    commands.insert_resource(SpriteTextures {
+    let textures = SpriteTextures {
         tex_8x8: asset_server.load("8x8.png"),
         tex_16x16: asset_server.load("16x16.png"),
         tex_32x32: asset_server.load("32x32.png"),
         current: 0,
-    });
+    };
 
     commands.spawn().insert(TileCount {
         count: (10, 10).into(),
     });
+
+    let center_sprite = SpriteBundle {
+        transform: Transform::from_xyz(0.0,0.0,2.0),
+        sprite: Sprite {
+            color: Color::BLACK,
+            custom_size: Some(Vec2::ONE * 0.5),
+            ..Default::default()
+        },
+        texture: textures.tex_8x8.clone(),
+        ..Default::default()
+    };
+    commands.spawn_bundle(center_sprite);
+
+    
+    commands.insert_resource(textures);
 
     println!("Resize the window to see auto-scaling.");
     println!("Press spacebar to toggle camera center. Arrow keys to adjust number of tiles. Tab to change textures.");
@@ -107,13 +125,16 @@ fn handle_input(
     }
 }
 
+#[derive(Component)]
+struct GridSprite;
+
 fn spawn_sprites(
     mut commands: Commands,
     q_sprite_count_changed: Query<&TileCount, Changed<TileCount>>,
     q_camera_changed: Query<&TiledProjection, Changed<TiledProjection>>,
     q_sprite_count: Query<&TileCount>,
-    q_camera: Query<(&TiledCamera, &GlobalTransform, &TiledProjection)>,
-    sprites_query: Query<Entity, With<Sprite>>,
+    q_camera: Query<(&GlobalTransform, &TiledProjection)>,
+    sprites_query: Query<Entity, (With<Sprite>, With<GridSprite>)>,
     sprite_textures: Res<SpriteTextures>,
 ) {
     let sprite_count_changed = q_sprite_count_changed.get_single().is_ok();
@@ -125,7 +146,7 @@ fn spawn_sprites(
         }
 
         let sprite_count = q_sprite_count.single().count.as_ivec2();
-        let (cam, transform, proj) = q_camera.single();
+        let (transform, proj) = q_camera.single();
 
         let min = match proj.centered {
             true => -(sprite_count / 2),
@@ -135,6 +156,21 @@ fn spawn_sprites(
             true => min + sprite_count,
             false => sprite_count,
         };
+
+        println!("Min {}, max {}, count {},{}", min, max, max.x - min.x, max.y - min.y);
+
+        let bg_sprite = SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(sprite_count.x as f32, sprite_count.y as f32)),
+                color: Color::rgba(1.0, 1.0, 1.0, 0.15),
+                ..Default::default()
+            },
+            texture: sprite_textures.tex_8x8.clone(),
+            transform: Transform::from_xyz(0.0,0.0,0.1),
+            ..Default::default()
+        };
+
+        //commands.spawn_bundle(bg_sprite).insert(GridSprite);
 
         for x in min.x..max.x {
             for y in min.y..max.y {
@@ -148,7 +184,7 @@ fn spawn_sprites(
                     _ => sprite_textures.tex_8x8.clone(),
                 };
 
-                let p = cam.tile_center_world(transform, (x,y));
+                let p = proj.tile_center_world(transform, (x,y));
 
                 let transform = Transform::from_translation(p);
 
@@ -158,7 +194,7 @@ fn spawn_sprites(
                     transform,
                     ..Default::default()
                 };
-                commands.spawn_bundle(bundle);
+                commands.spawn_bundle(bundle).insert(GridSprite);
             }
         }
     }
