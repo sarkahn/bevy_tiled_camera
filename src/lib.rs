@@ -20,9 +20,16 @@ use bevy::render::{
 };
 pub use projection::TiledProjection;
 
+mod grid;
+mod rect;
+mod sized_grid;
+
 pub mod projection;
 
 pub struct TiledCameraPlugin;
+
+use grid::PositionGrid;
+use rect::Rect;
 
 /// Provides a simple way to set initial parameters for the tiled camera.
 ///
@@ -44,6 +51,7 @@ pub struct TiledCameraBuilder {
 #[derive(Bundle)]
 pub struct TiledCameraBundle {
     pub camera: Camera,
+    pub tiled_camera: TiledCamera,
     pub projection: TiledProjection,
     pub visible_entities: VisibleEntities,
     pub frustum: Frustum,
@@ -67,6 +75,7 @@ impl Default for TiledCameraBundle {
                 name: Some(CameraPlugin::CAMERA_2D.to_string()),
                 ..Default::default()
             },
+            tiled_camera: TiledCamera::default(),
             projection: Default::default(),
             visible_entities: Default::default(),
             frustum: Default::default(),
@@ -117,6 +126,7 @@ impl TiledCameraBuilder {
     /// Determines how many tiles can fit in the viewport on either axis before it will be rescaled.
     pub fn with_tile_count(mut self, tile_count: UVec2) -> Self {
         self.camera_bundle.projection.target_tile_count = tile_count;
+        self.camera_bundle.tiled_camera.set_tile_count(tile_count.into());
         self
     }
 }
@@ -124,5 +134,86 @@ impl TiledCameraBuilder {
 impl Default for TiledCameraBuilder {
     fn default() -> Self {
         TiledCameraBuilder::new()
+    }
+}
+
+#[derive(Default, Component)]
+pub struct TiledCamera {
+    center_offset: Vec2,
+}
+
+impl TiledCamera {
+    pub fn new(tile_count: (u32,u32)) -> Self {
+        let mut cam = TiledCamera::default();
+        cam.set_tile_count(tile_count);
+        cam
+    }
+
+    pub fn set_tile_count(&mut self, tile_count: (u32,u32)) {
+        let tile_count = UVec2::from(tile_count);
+        let offset = ( tile_count % 2).cmpeq(UVec2::ZERO);
+        let offset = Vec2::select(offset, Vec2::new(0.5,0.5), Vec2::ZERO);
+        self.center_offset = offset;
+    }
+
+    /// Convert a world position to a tile position.
+    pub fn world_to_tile(&self, cam_transform: &GlobalTransform, world_pos: (f32,f32,f32)) -> IVec2 {
+        let local = (Vec3::from(world_pos) - cam_transform.translation).truncate() + self.center_offset;
+        local.floor().as_ivec2()
+    }
+
+    pub fn tile_to_world(&self, cam_transform: &GlobalTransform, tile_pos: (i32,i32)) -> Vec3 {
+        let tile = IVec2::from(tile_pos).as_vec2() - self.center_offset;
+        cam_transform.translation + tile.extend(0.0)
+    }
+
+    pub fn tile_center_world(&self, cam_transform: &GlobalTransform, tile_pos: (i32,i32)) -> Vec3 {
+        cam_transform.translation + self.tile_to_world(cam_transform, tile_pos) + self.center_offset.extend(0.0)
+    }
+
+    /// Converts a screen position to a world position
+    pub fn screen_to_world(
+        camera: &Camera,
+        windows: &Windows,
+        camera_transform: &GlobalTransform,
+        screen_pos: Vec2,
+    ) -> Option<Vec2> {
+        let window = windows.get(camera.window)?;
+        let window_size = Vec2::new(window.width(), window.height());
+    
+        // Convert screen position [0..resolution] to ndc [-1..1]
+        let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
+    
+        let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix.inverse();
+    
+        let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
+    
+        Some(world_pos.truncate())
+    }
+
+    pub fn world_to_screen(
+        &self,
+        camera: &Camera,
+        windows: &Windows,
+        camera_transform: &GlobalTransform,
+        world_position: Vec3,
+    ) -> Option<Vec2> {
+        let window = windows.get(camera.window)?;
+        let window_size = Vec2::new(window.width(), window.height());
+        // Build a transform to convert from world to NDC using camera data
+        let world_to_ndc: Mat4 =
+            camera.projection_matrix * camera_transform.compute_matrix().inverse();
+        let ndc_space_coords: Vec3 = world_to_ndc.project_point3(world_position);
+        // NDC z-values outside of 0 < z < 1 are outside the camera frustum and are thus not in screen space
+        if ndc_space_coords.z < 0.0 || ndc_space_coords.z > 1.0 {
+            return None;
+        }
+        // Once in NDC space, we can discard the z element and rescale x/y to fit the screen
+        let screen_space_coords = (ndc_space_coords.truncate() + Vec2::ONE) / 2.0 * window_size;
+        if !screen_space_coords.is_nan() {
+            Some(screen_space_coords)
+        } else {
+            None
+        }
     }
 }

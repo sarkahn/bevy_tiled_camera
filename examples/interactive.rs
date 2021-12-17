@@ -8,13 +8,13 @@ use bevy::{
     ecs::prelude::*,
     input::Input,
     math::{IVec2, UVec2, Vec2},
-    prelude::{App, AssetServer, Handle, KeyCode, Transform},
+    prelude::{App, AssetServer, Handle, KeyCode, Transform, GlobalTransform},
     render::texture::Image,
     sprite::{SpriteBundle, Sprite},
     DefaultPlugins,
 };
 
-use bevy_tiled_camera::{TiledProjection, TiledCameraBuilder, TiledCameraPlugin};
+use bevy_tiled_camera::{TiledProjection, TiledCameraBuilder, TiledCameraPlugin, TiledCamera};
 
 fn main() {
     App::new()
@@ -112,7 +112,7 @@ fn spawn_sprites(
     q_sprite_count_changed: Query<&TileCount, Changed<TileCount>>,
     q_camera_changed: Query<&TiledProjection, Changed<TiledProjection>>,
     q_sprite_count: Query<&TileCount>,
-    q_camera: Query<&TiledProjection>,
+    q_camera: Query<(&TiledCamera, &GlobalTransform, &TiledProjection)>,
     sprites_query: Query<Entity, With<Sprite>>,
     sprite_textures: Res<SpriteTextures>,
 ) {
@@ -125,16 +125,17 @@ fn spawn_sprites(
         }
 
         let sprite_count = q_sprite_count.single().count.as_ivec2();
-        let cam = q_camera.single();
+        let (cam, transform, proj) = q_camera.single();
 
-        let min = match cam.centered {
+        let min = match proj.centered {
             true => -(sprite_count / 2),
             false => IVec2::ZERO,
         };
-        let max = match cam.centered {
+        let max = match proj.centered {
             true => min + sprite_count,
             false => sprite_count,
         };
+
         for x in min.x..max.x {
             for y in min.y..max.y {
                 let sprite = Sprite {
@@ -146,7 +147,10 @@ fn spawn_sprites(
                     2 => sprite_textures.tex_32x32.clone(),
                     _ => sprite_textures.tex_8x8.clone(),
                 };
-                let transform = Transform::from_xyz(x as f32 + 0.5, y as f32 + 0.5, 0.0);
+
+                let p = cam.tile_center_world(transform, (x,y));
+
+                let transform = Transform::from_translation(p);
 
                 let bundle = SpriteBundle {
                     sprite,

@@ -10,7 +10,7 @@ use bevy::{
 /// Note that this projection assumes the size of one *tile* is equal to one world unit. This is
 /// different than Bevy's default 2D orthographic camera which assumes one *pixel* is equal to one
 /// world unit.
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct TiledProjection {
     pub left: f32,
     pub right: f32,
@@ -66,11 +66,15 @@ impl CameraProjection for TiledProjection {
     fn update(&mut self, width: f32, height: f32) {
         let aspect = width / height;
 
-        let tile_count = match self.centered {
-            // Ensure our tile count is always a multiple of two for correct rendering with a centered camera
-            true => ((self.target_tile_count.as_vec2() / 2.0).ceil() * 2.0).as_uvec2(),
-            false => self.target_tile_count,
-        };
+        // let tile_count = match self.centered {
+        //     // Ensure our tile count is always a multiple of two for correct rendering with a centered camera
+        //     true => {
+        //         ((self.target_tile_count.as_vec2() / 2.0).ceil() * 2.0).as_uvec2()
+        //         //self.target_tile_count
+        //     }
+        //     false => self.target_tile_count,
+        // };
+        let tile_count = self.target_tile_count;
 
         let target_size = tile_count * self.pixels_per_tile;
         let window_size = UVec2::new(width as u32, height as u32);
@@ -85,16 +89,16 @@ impl CameraProjection for TiledProjection {
             let round_to_multiple = |value: f32, step: f32| step * (value / step).round();
 
             // Ensure our "edges" are sitting on the pixel grid, so sprites that also sit on the grid will render properly
-            let pixel_size = 1.0 / self.pixels_per_tile as f32;
+            let pixel_size = 1.0 / (self.pixels_per_tile as f32 * self.zoom() as f32);
             let half_width = width / 2.0;
-            let half_width = -round_to_multiple(half_width, pixel_size);
+            let half_width = round_to_multiple(half_width, pixel_size);
             let half_height = height / 2.0;
-            let half_height = -round_to_multiple(half_height, pixel_size);
+            let half_height = round_to_multiple(half_height, pixel_size);
 
-            self.left = half_width;
-            self.right = half_width + width;
-            self.bottom = half_height;
-            self.top = half_height + height;
+            self.left = -half_width;
+            self.right = self.left + width;
+            self.bottom = -half_height;
+            self.top = self.bottom + height;
         } else {
             self.left = 0.0;
             self.bottom = 0.0;
@@ -109,5 +113,46 @@ impl CameraProjection for TiledProjection {
 
     fn far(&self) -> f32 {
         self.far
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use bevy::{render::camera::CameraProjection, math::IVec2};
+
+    use crate::TiledProjection;
+
+    #[test]
+    fn round() {
+        let round_to_multiple = |value: f32, step: f32| step * (value / step).round();
+        let pixel_size = 1.0 / 8.0;
+        let rounded = round_to_multiple(-2.5, pixel_size);
+        println!("{}", rounded);
+    }  
+
+
+    #[test]
+    fn test() {
+        let v = IVec2::new(5,6);
+        let m = v % 2;
+        println!("{}", m);
+    }
+
+    #[test]
+    fn test_projection() {
+        let mut proj = TiledProjection {
+            target_tile_count: (6,6).into(),
+            pixels_per_tile: 10,
+            ..Default::default()
+        };
+        // 8 * 20 = 160
+
+        let p: &mut dyn CameraProjection = &mut proj;
+
+        p.update(100.0, 100.0);
+
+        println!("Proj {:#?}", proj);
+
+        //assert_eq!(proj.zoom(), 3);
     }
 }
