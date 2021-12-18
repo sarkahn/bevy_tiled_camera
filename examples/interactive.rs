@@ -11,7 +11,7 @@ use bevy::{
     prelude::*,
     render::texture::Image,
     sprite::{SpriteBundle, Sprite},
-    DefaultPlugins, pbr::PbrBundle,
+    DefaultPlugins,
 };
 
 use bevy_tiled_camera::{TiledProjection, TiledCameraPlugin, TiledCameraBundle};
@@ -23,6 +23,7 @@ fn main() {
         .add_startup_system(setup)
         .add_system(handle_input)
         .add_system(spawn_sprites)
+        .add_system(cursor_system)
         .run();
 }
 
@@ -42,10 +43,11 @@ fn setup(
     mut commands: Commands, 
     asset_server: Res<AssetServer>,
 ) {
+    let tile_count = (2,2);
     let cam_bundle = TiledCameraBundle::new()
         .with_centered(true)
         .with_pixels_per_tile(8)
-        .with_tile_count((10,10));
+        .with_tile_count(tile_count);
 
     commands.spawn_bundle(cam_bundle);
 
@@ -57,26 +59,25 @@ fn setup(
     };
 
     commands.spawn().insert(TileCount {
-        count: (10, 10).into(),
+        count: tile_count.into(),
     });
-
-    let center_sprite = SpriteBundle {
-        transform: Transform::from_xyz(0.0,0.0,2.0),
-        sprite: Sprite {
-            color: Color::BLACK,
-            custom_size: Some(Vec2::ONE * 0.5),
-            ..Default::default()
-        },
-        texture: textures.tex_8x8.clone(),
-        ..Default::default()
-    };
-    commands.spawn_bundle(center_sprite);
-
     
     commands.insert_resource(textures);
 
     println!("Resize the window to see auto-scaling.");
     println!("Press spacebar to toggle camera center. Arrow keys to adjust number of tiles. Tab to change textures.");
+
+    let col = Color::rgba(1.0,1.0,1.0,0.35);
+    let cursor = SpriteBundle {
+        sprite: Sprite {
+            color: col,
+            custom_size: Some(Vec2::ONE),
+            ..Default::default()
+        },
+        transform: Transform::from_xyz(0.0,0.0,2.0),
+        ..Default::default()
+    };
+    commands.spawn_bundle(cursor).insert(Cursor);
 }
 
 fn handle_input(
@@ -94,25 +95,25 @@ fn handle_input(
     if input.just_pressed(KeyCode::Up) {
         let mut tile_count = q_tile_count.single_mut();
         tile_count.count.y += 1;
-        q_cam.single_mut().target_tile_count = tile_count.count;
+        q_cam.single_mut().set_tile_count(tile_count.count.into());
     }
 
     if input.just_pressed(KeyCode::Down) {
         let mut tile_count = q_tile_count.single_mut();
         tile_count.count.y = (tile_count.count.y - 1).max(1);
-        q_cam.single_mut().target_tile_count = tile_count.count;
+        q_cam.single_mut().set_tile_count(tile_count.count.into());
     }
 
     if input.just_pressed(KeyCode::Left) {
         let mut tile_count = q_tile_count.single_mut();
         tile_count.count.x = (tile_count.count.x - 1).max(1);
-        q_cam.single_mut().target_tile_count = tile_count.count;
+        q_cam.single_mut().set_tile_count(tile_count.count.into());
     }
 
     if input.just_pressed(KeyCode::Right) {
         let mut tile_count = q_tile_count.single_mut();
         tile_count.count.x += 1;
-        q_cam.single_mut().target_tile_count = tile_count.count;
+        q_cam.single_mut().set_tile_count(tile_count.count.into());
     }
 
     if input.just_pressed(KeyCode::Tab) {
@@ -157,21 +158,6 @@ fn spawn_sprites(
             false => sprite_count,
         };
 
-        println!("Min {}, max {}, count {},{}", min, max, max.x - min.x, max.y - min.y);
-
-        let bg_sprite = SpriteBundle {
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(sprite_count.x as f32, sprite_count.y as f32)),
-                color: Color::rgba(1.0, 1.0, 1.0, 0.15),
-                ..Default::default()
-            },
-            texture: sprite_textures.tex_8x8.clone(),
-            transform: Transform::from_xyz(0.0,0.0,0.1),
-            ..Default::default()
-        };
-
-        //commands.spawn_bundle(bg_sprite).insert(GridSprite);
-
         for x in min.x..max.x {
             for y in min.y..max.y {
                 let sprite = Sprite {
@@ -184,18 +170,51 @@ fn spawn_sprites(
                     _ => sprite_textures.tex_8x8.clone(),
                 };
 
-                let p = proj.tile_center_world(transform, (x,y));
+                if let Some(p) = proj.tile_center_world(transform, (x,y)) {
+                    let transform = Transform::from_translation(p);
 
-                let transform = Transform::from_translation(p);
-
-                let bundle = SpriteBundle {
-                    sprite,
-                    texture,
-                    transform,
-                    ..Default::default()
-                };
-                commands.spawn_bundle(bundle).insert(GridSprite);
+                    let bundle = SpriteBundle {
+                        sprite,
+                        texture,
+                        transform,
+                        ..Default::default()
+                    };
+                    commands.spawn_bundle(bundle).insert(GridSprite);
+                }
             }
         }
     }
+}
+
+#[derive(Component)]
+struct Cursor;
+
+fn cursor_system(
+    windows: Res<Windows>,
+    q_camera: Query<(&Camera, &GlobalTransform, &TiledProjection)>,
+    mut q_cursor: Query<(&mut Transform, &mut Visibility), With<Cursor>>,
+) {
+    let window = windows.get_primary().unwrap();
+
+    if let Some(pos) = window.cursor_position() {
+        for (cam, t, proj) in q_camera.iter() {
+            if let Some(p) = proj.screen_to_world(cam, &windows, t, pos) {
+
+                if let Some(mut p) = proj.world_to_tile_center(t, p) {
+                    p.z = 2.0;
+
+                    let (mut t, mut v) = q_cursor.single_mut(); 
+                    v.is_visible = true;
+    
+                    t.translation = p;
+                    return;
+                }
+
+            }
+        }
+    }
+
+    println!("Not visible");
+    let (_, mut v) = q_cursor.single_mut();
+    v.is_visible = false;
 }

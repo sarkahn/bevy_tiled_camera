@@ -10,7 +10,7 @@ fn setup(
     .with_tile_count((3,3));
 
     let proj = &cam_bundle.projection;
-    let p = proj.tile_center_world(&GlobalTransform::default(), (0,0));
+    let p = proj.tile_center_world(&GlobalTransform::default(), (0,0)).unwrap();
 
     let tex = server.load("8x8.png");
 

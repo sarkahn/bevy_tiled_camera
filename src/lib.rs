@@ -63,7 +63,7 @@ impl TiledCameraBundle {
 
     /// Sets the projection to display the given tile count.
     pub fn with_tile_count(mut self, tile_count: (u32, u32)) -> Self {
-        self.projection.target_tile_count = UVec2::from(tile_count);
+        self.projection.set_tile_count(tile_count);
         self
     }
 
