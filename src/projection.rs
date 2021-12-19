@@ -21,7 +21,7 @@ pub struct TiledProjection {
 
     pub pixels_per_tile: u32,
     target_tile_count: UVec2,
-    pub centered: bool,
+    centered: bool,
     zoom: u32,
     center_offset: Vec2,
 }
@@ -46,16 +46,52 @@ impl TiledProjection {
         proj.set_tile_count(target_tile_count.into());
         proj
     }
+
+    pub fn uncentered(target_tile_count: (u32, u32)) -> Self {
+        let target_tile_count = UVec2::from(target_tile_count);
+        let mut proj = TiledProjection {
+            left: -1.0,
+            right: 1.0,
+            bottom: -1.0,
+            top: 1.0,
+            near: 0.0,
+            far: 1000.0,
+            zoom: 1,
+            centered: false,
+            target_tile_count,
+            pixels_per_tile: 8,
+            center_offset: Default::default(),
+        };
+        proj.set_tile_count(target_tile_count.into());
+        proj
+    }
+
     /// Refers to how much the view is scaled up based on your pixels per tile and tile count settings.
     pub fn zoom(&self) -> u32 {
         self.zoom
     }
 
+    pub fn centered(&self) -> bool {
+        self.centered
+    }
+
+    pub fn tile_count(&self) -> UVec2 {
+        self.target_tile_count
+    }
+
+    pub fn pixels_per_tile(&self) -> u32 {
+        self.pixels_per_tile
+    }
 
     pub fn set_tile_count(&mut self, tile_count: (u32,u32)) {
         let tile_count = UVec2::from(tile_count);
         self.target_tile_count = tile_count;
-        self.center_offset = center_offset(true, tile_count);
+        self.center_offset = center_offset(self.centered, tile_count);
+    }
+
+    pub fn set_centered(&mut self, centered: bool) {
+        self.centered = centered;
+        self.center_offset = center_offset(self.centered, self.target_tile_count);
     }
 
     /// Returns a tile position in world space
@@ -64,15 +100,24 @@ impl TiledProjection {
         if !self.tile_in_bounds(tile_pos) {
             return None;
         }
-
-        let tile_offset = self.center_offset - Vec2::new(0.5,0.5);
-        Some((cam_transform.translation.truncate() + tile_pos.as_vec2() + tile_offset).extend(0.0))
+        Some(self.tile_to_world_unchecked(cam_transform, tile_pos))
+    }
+    pub fn tile_to_world_unchecked(&self, cam_transform: &GlobalTransform, tile_pos: IVec2) -> Vec3 {
+        let local = self.tile_to_local(tile_pos);
+        self.local_to_world(cam_transform, local)
     }
 
-    pub fn world_to_tile(&self, cam_transform: &GlobalTransform, world_pos: Vec3) -> IVec2 {
-        let tile_offset = self.center_offset - Vec2::new(0.5,0.5);
-        let local = world_pos.truncate() - cam_transform.translation.truncate();
-        (local - tile_offset).floor().as_ivec2()
+    pub fn world_to_tile(&self, cam_transform: &GlobalTransform, world_pos: Vec3) -> Option<IVec2> {
+        let tile_pos = self.world_to_tile_unchecked(cam_transform, world_pos);
+        if !self.tile_in_bounds(tile_pos) {
+            return None;
+        }
+        Some(tile_pos)
+    }
+
+    fn world_to_tile_unchecked(&self, cam_transform: &GlobalTransform, world_pos: Vec3) -> IVec2 {
+        let local = self.world_to_local(cam_transform, world_pos);
+        self.local_to_tile(local)
     }
 
     pub fn tile_center_world(&self, cam_transform: &GlobalTransform, tile_pos: (i32,i32)) -> Option<Vec3> {
@@ -80,9 +125,13 @@ impl TiledProjection {
         if !self.tile_in_bounds(tile_pos) {
             return None;
         }
+        
+        Some(self.tile_center_world_unchecked(cam_transform, tile_pos))
+    }
 
-        let tile_pos = tile_pos.as_vec2();
-        Some((cam_transform.translation.truncate() + tile_pos + self.center_offset).extend(0.0))
+    fn tile_center_world_unchecked(&self, cam_transform: &GlobalTransform, tile_pos: IVec2) -> Vec3 {
+        let world = self.tile_to_world_unchecked(cam_transform, tile_pos).truncate();
+        (world + Vec2::new(0.5,0.5)).extend(0.0)
     }
 
 
@@ -91,11 +140,14 @@ impl TiledProjection {
         cam_transform: &GlobalTransform,
         world_pos: Vec3,
     ) -> Option<Vec3> {
-        let tile = self.world_to_tile(cam_transform, world_pos);
-        if !self.tile_in_bounds(tile) {
-            return None;
-        };
-        self.tile_center_world(cam_transform, tile.into())
+        if let Some(tile) = self.world_to_tile(cam_transform, world_pos) {
+            return Some(self.tile_center_world_unchecked(cam_transform, tile.into()));
+        }
+        None
+    }
+
+    fn tile_offset(&self) -> Vec2 {
+        self.center_offset - Vec2::new(0.5,0.5)
     }
 
     /// Converts a screen position to a world position
@@ -111,10 +163,19 @@ impl TiledProjection {
     
         // Convert screen position [0..resolution] to ndc [-1..1]
         let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
+
+        let min = -Vec2::ONE;
+        let max = Vec2::ONE;
+        let below_min = !ndc.cmpge(min);
+        let above_max = !ndc.cmplt(max);
+        if below_min.any() || above_max.any() {
+            return None;
+        }
     
         let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix.inverse();
     
         let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
+        let world_pos = world_pos.truncate().extend(0.0);
     
         Some(world_pos)
     }
@@ -145,18 +206,26 @@ impl TiledProjection {
         }
     }
 
+    fn local_to_world(&self, cam_transform: &GlobalTransform, local_pos: Vec2) -> Vec3 {
+        (local_pos + cam_transform.translation.truncate()).extend(0.0)
+    }
+
     fn world_to_local(&self, cam_transform: &GlobalTransform, world_pos: Vec3) -> Vec2 {
         world_pos.truncate() - cam_transform.translation.truncate()
     }
 
+    fn tile_to_local(&self, tile: IVec2) -> Vec2 {
+        tile.as_vec2() + self.tile_offset()
+    }
+
     fn local_to_tile(&self, local: Vec2) -> IVec2 {
-        (local.floor() - self.center_offset).as_ivec2()
+        (local - self.tile_offset()).floor().as_ivec2()
     }
 
     fn tile_in_bounds(&self, tile_pos: IVec2) -> bool {
         let (min, max) = match self.centered {
             true => {
-                let min = self.target_tile_count.as_ivec2() / 2;
+                let min = -self.target_tile_count.as_ivec2() / 2;
                 let max = min + self.target_tile_count.as_ivec2();
                 (min,max)
             },
@@ -168,24 +237,6 @@ impl TiledProjection {
         let above_min = tile_pos.cmpge(min);
         let below_max = tile_pos.cmplt(max);
         above_min.all() && below_max.all()
-    }
-
-    fn local_in_bounds(&self, local: Vec2) -> bool {
-        false
-        // let (min, max) = match self.centered {
-        //     true => (Vec2::ZERO, self.tile_count.as_vec2()),
-        //     false => (),
-        // }
-    }
-
-    fn min_max_local(&self) -> (Vec2,Vec2) {
-        match self.centered {
-            true => {
-                let min = self.target_tile_count.as_vec2() / 2.0;
-                (min, min + self.target_tile_count.as_vec2())
-            }
-            false => (Vec2::ZERO, self.target_tile_count.as_vec2()),
-        }
     }
 }
 
@@ -273,7 +324,6 @@ mod test {
         let round_to_multiple = |value: f32, step: f32| step * (value / step).round();
         let pixel_size = 1.0 / 8.0;
         let rounded = round_to_multiple(-2.5, pixel_size);
-        println!("{}", rounded);
     }  
 
     #[test]
@@ -305,7 +355,7 @@ mod test {
     }
 
     #[test]
-    fn tile_pos_odd() {
+    fn tile_to_world_odd() {
         let proj = TiledProjection::new((3,3));
         let t = GlobalTransform::default();
         let p = proj.tile_to_world(&t, (0,0)).unwrap();
@@ -314,7 +364,7 @@ mod test {
     }
 
     #[test]
-    fn tile_pos_even() {
+    fn tile_to_world_even() {
         let proj = TiledProjection::new((2,2));
         let t = GlobalTransform::default();
         let p = proj.tile_to_world(&t, (0,0)).unwrap();
@@ -329,6 +379,9 @@ mod test {
         let p = proj.tile_center_world(&t, (0,0)).unwrap();
         assert_eq!(p.x, 0.0);
         assert_eq!(p.y, 0.0);
+
+        let p = proj.tile_center_world(&t, (1,0)).unwrap();
+        assert_eq!(p.x, 1.0);
     }
 
     #[test]
@@ -336,6 +389,11 @@ mod test {
         // Even tile pos should be + 0.5 
         let proj = TiledProjection::new((2,2));
         let t = GlobalTransform::default();
+
+        let p = proj.tile_center_world(&t, (0,0)).unwrap();
+        assert_eq!(p.x, 0.5);
+        assert_eq!(p.y, 0.5);
+
         let p = proj.tile_center_world(&t, (-1,-1)).unwrap();
         assert_eq!(p.x, -0.5);
         assert_eq!(p.y, -0.5);
@@ -360,8 +418,38 @@ mod test {
     }
 
     #[test]
-    fn world_to_tile() {
-        let t = GlobalTransform::from_xyz(1.1, 2.5, 0.0);
+    fn tile_to_local_even() {
+        let proj = TiledProjection::new((2,2));
+        let p = proj.tile_to_local(IVec2::new(0,0));
+        assert_eq!(p.x, 0.0);
+        assert_eq!(p.y, 0.0);
+    }
+
+    #[test]
+    fn tile_to_local_odd() {
         let proj = TiledProjection::new((3,3));
+        let p = proj.tile_to_local(IVec2::new(0,0));
+        assert_eq!(p.x, -0.5);
+        assert_eq!(p.y, -0.5);
+    }
+
+    #[test]
+    fn cam_centered_tile_center_odd() {
+        let t = GlobalTransform::default();
+        let proj = TiledProjection::uncentered((3,3));
+        let p = proj.tile_center_world(&t, (0,0)).unwrap();
+
+        assert_eq!(p.x, 0.5);
+        assert_eq!(p.y, 0.5);
+    }
+
+    #[test]
+    fn cam_centered_tile_center_even() {
+        let t = GlobalTransform::default();
+        let proj = TiledProjection::uncentered((4,4));
+        let p = proj.tile_center_world(&t, (0,0)).unwrap();
+
+        assert_eq!(p.x, 0.5);
+        assert_eq!(p.y, 0.5);
     }
 }

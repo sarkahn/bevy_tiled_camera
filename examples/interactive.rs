@@ -24,6 +24,7 @@ fn main() {
         .add_system(handle_input)
         .add_system(spawn_sprites)
         .add_system(cursor_system)
+        .add_system(update_text)
         .run();
 }
 
@@ -64,9 +65,6 @@ fn setup(
     
     commands.insert_resource(textures);
 
-    println!("Resize the window to see auto-scaling.");
-    println!("Press spacebar to toggle camera center. Arrow keys to adjust number of tiles. Tab to change textures.");
-
     let col = Color::rgba(1.0,1.0,1.0,0.35);
     let cursor = SpriteBundle {
         sprite: Sprite {
@@ -78,7 +76,24 @@ fn setup(
         ..Default::default()
     };
     commands.spawn_bundle(cursor).insert(Cursor);
+
+    make_ui(&mut commands, asset_server);
 }
+
+// fn spawn_center(
+//     commands: &mut Commands
+// ) {
+//     let center_sprite = SpriteBundle {
+//         sprite: Sprite {
+//             color: Color::rgba(1.0,1.0,1.0,0.25),
+//             custom_size: Some(Vec2::ONE * 0.35),
+//             ..Default::default()
+//         },
+//         transform: Transform::from_xyz(0.0,0.0,3.0),
+//         ..Default::default()
+//     };
+//     commands.spawn_bundle(center_sprite);
+// }
 
 fn handle_input(
     input: Res<Input<KeyCode>>,
@@ -88,8 +103,8 @@ fn handle_input(
 ) {
     if input.just_pressed(KeyCode::Space) {
         let mut cam = q_cam.single_mut();
-
-        cam.centered = !cam.centered;
+        let centered = cam.centered();
+        cam.set_centered(!centered);
     }
 
     if input.just_pressed(KeyCode::Up) {
@@ -149,11 +164,11 @@ fn spawn_sprites(
         let sprite_count = q_sprite_count.single().count.as_ivec2();
         let (transform, proj) = q_camera.single();
 
-        let min = match proj.centered {
+        let min = match proj.centered() {
             true => -(sprite_count / 2),
             false => IVec2::ZERO,
         };
-        let max = match proj.centered {
+        let max = match proj.centered() {
             true => min + sprite_count,
             false => sprite_count,
         };
@@ -180,6 +195,145 @@ fn spawn_sprites(
                         ..Default::default()
                     };
                     commands.spawn_bundle(bundle).insert(GridSprite);
+                }
+            }
+        }
+    }
+}
+
+fn make_ui(
+    commands: &mut Commands,
+    asset_server: Res<AssetServer>,
+) {
+    
+    let font_size = 23.0;
+    let font = asset_server.load("RobotoMono-Regular.ttf");
+    let color = Color::YELLOW;
+    // UI camera
+    commands.spawn_bundle(UiCameraBundle::default());
+    // Text with one section
+    commands.spawn_bundle(TextBundle {
+        style: Style {
+            align_self: AlignSelf::FlexEnd,
+            flex_wrap: FlexWrap::Wrap,
+            ..Default::default()
+        },
+        // Use the `Text::with_section` constructor
+        text: Text {
+            sections: vec![
+                TextSection {
+                    value: "Controls:\n  -Resize the window to see auto-scaling.".to_string(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                TextSection {
+                    value: "\n  -Spacebar to toggle camera center.\n  -Arrow keys to adjust number of tiles.\n  -Tab to change textures.".to_string(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Tile count/ppu
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Window resolution
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Camera zoom
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Centered
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Cursor world pos
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Cursor tile pos
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                }
+            ],
+            ..Default::default()
+        },
+        ..Default::default()
+    });
+}
+
+fn update_text(
+    mut q_text: Query<&mut Text>,
+    windows: Res<Windows>,
+    q_camera: Query<(&Camera, &GlobalTransform, &TiledProjection)>,
+
+) {
+    let mut text = q_text.single_mut();
+
+    let window = windows.get_primary().unwrap();
+    if let Some(pos) = window.cursor_position() {
+        for (cam, t, proj) in q_camera.iter() {
+            if let Some(cursor_world) = proj.screen_to_world(cam, &windows, t, pos) {
+                let zoom = proj.zoom();
+                let tile_count = proj.tile_count();
+                let ppu = proj.pixels_per_tile();
+                let target_res = tile_count * ppu;
+                let cursor_x = format!("{:.2}", cursor_world.x);
+                let cursor_y = format!("{:.2}", cursor_world.y);
+                let window_res = Vec2::new(window.width(), window.height()).as_uvec2();
+                let centered = proj.centered();
+
+
+                text.sections[2].value = format!("\nProjection tiles: {}. Pixels Per Tile: {}", tile_count, ppu);
+
+                text.sections[3].value = format!("\nTarget resolution: {}.\nWindow resolution: {}. ", target_res, window_res);
+
+                text.sections[4].value = format!("\nProjection zoom: {}", zoom);
+
+                text.sections[5].value = format!("\nProjection centered: {}", centered);
+
+                text.sections[6].value = format!("\nCursor world pos: [{},{}]", cursor_x, cursor_y);
+                
+                if let Some(tile_pos) = proj.world_to_tile(t, cursor_world) {
+                    text.sections[7].value = format!("\nCursor tile pos: {}", tile_pos);
+                } else {
+                    text.sections[7].value = String::default();
                 }
             }
         }
@@ -214,7 +368,6 @@ fn cursor_system(
         }
     }
 
-    println!("Not visible");
     let (_, mut v) = q_cursor.single_mut();
     v.is_visible = false;
 }
