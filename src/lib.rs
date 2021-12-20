@@ -63,6 +63,9 @@ use bevy::render::{
     primitives::Frustum,
     view::VisibleEntities,
 };
+
+mod position_grid;
+
 pub use projection::TiledProjection;
 
 pub mod projection;

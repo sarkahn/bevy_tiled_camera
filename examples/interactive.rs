@@ -11,7 +11,7 @@ use bevy::{
     prelude::*,
     render::texture::Image,
     sprite::{SpriteBundle, Sprite},
-    DefaultPlugins,
+    DefaultPlugins, utils::HashMap,
 };
 
 use bevy_tiled_camera::{TiledProjection, TiledCameraPlugin, TiledCameraBundle};
@@ -40,6 +40,8 @@ struct TileCount {
     pub count: UVec2,
 }
 
+struct GridEntities(HashMap<IVec2, Entity>);
+
 fn setup(
     mut commands: Commands, 
     asset_server: Res<AssetServer>,
@@ -65,6 +67,9 @@ fn setup(
     
     commands.insert_resource(textures);
 
+    let grid = GridEntities(HashMap::default());
+    commands.insert_resource(grid);
+
     let col = Color::rgba(1.0,1.0,1.0,0.35);
     let cursor = SpriteBundle {
         sprite: Sprite {
@@ -79,21 +84,6 @@ fn setup(
 
     make_ui(&mut commands, asset_server);
 }
-
-// fn spawn_center(
-//     commands: &mut Commands
-// ) {
-//     let center_sprite = SpriteBundle {
-//         sprite: Sprite {
-//             color: Color::rgba(1.0,1.0,1.0,0.25),
-//             custom_size: Some(Vec2::ONE * 0.35),
-//             ..Default::default()
-//         },
-//         transform: Transform::from_xyz(0.0,0.0,3.0),
-//         ..Default::default()
-//     };
-//     commands.spawn_bundle(center_sprite);
-// }
 
 fn handle_input(
     input: Res<Input<KeyCode>>,
@@ -146,9 +136,9 @@ struct GridSprite;
 
 fn spawn_sprites(
     mut commands: Commands,
+    mut grid: ResMut<GridEntities>,
     q_sprite_count_changed: Query<&TileCount, Changed<TileCount>>,
     q_camera_changed: Query<&TiledProjection, Changed<TiledProjection>>,
-    q_sprite_count: Query<&TileCount>,
     q_camera: Query<(&GlobalTransform, &TiledProjection)>,
     sprites_query: Query<Entity, (With<Sprite>, With<GridSprite>)>,
     sprite_textures: Res<SpriteTextures>,
@@ -161,42 +151,31 @@ fn spawn_sprites(
             commands.entity(entity).despawn();
         }
 
-        let sprite_count = q_sprite_count.single().count.as_ivec2();
-        let (transform, proj) = q_camera.single();
+        let (cam_transform, proj) = q_camera.single();
+        grid.0.clear();
 
-        let min = match proj.centered() {
-            true => -(sprite_count / 2),
-            false => IVec2::ZERO,
-        };
-        let max = match proj.centered() {
-            true => min + sprite_count,
-            false => sprite_count,
-        };
-
-        for x in min.x..max.x {
-            for y in min.y..max.y {
-                let sprite = Sprite {
-                    custom_size: Some(Vec2::ONE),
-                    ..Default::default()
-                };
-                let texture = match sprite_textures.current {
-                    1 => sprite_textures.tex_16x16.clone(),
-                    2 => sprite_textures.tex_32x32.clone(),
-                    _ => sprite_textures.tex_8x8.clone(),
-                };
-
-                if let Some(p) = proj.tile_center_world(transform, (x,y)) {
-                    let transform = Transform::from_translation(p);
-
-                    let bundle = SpriteBundle {
-                        sprite,
-                        texture,
-                        transform,
-                        ..Default::default()
-                    };
-                    commands.spawn_bundle(bundle).insert(GridSprite);
-                }
-            }
+        for p in proj.tile_center_iter(cam_transform) {
+            
+            let sprite = Sprite {
+                custom_size: Some(Vec2::ONE),
+                ..Default::default()
+            };
+            let texture = match sprite_textures.current {
+                1 => sprite_textures.tex_16x16.clone(),
+                2 => sprite_textures.tex_32x32.clone(),
+                _ => sprite_textures.tex_8x8.clone(),
+            };
+            let bundle = SpriteBundle {
+                sprite,
+                texture,
+                transform: Transform::from_translation(p),
+                ..Default::default()
+            };
+            let entity = commands.spawn_bundle(bundle).insert(GridSprite).id();
+            
+            let tile_index = proj.world_to_tile(&cam_transform, p).unwrap();
+            grid.0.insert(tile_index, entity);
+            println!("Inserting entity at grid pos {}", tile_index);
         }
     }
 }
@@ -344,23 +323,38 @@ fn update_text(
 struct Cursor;
 
 fn cursor_system(
+    input: Res<Input<MouseButton>>,
     windows: Res<Windows>,
     q_camera: Query<(&Camera, &GlobalTransform, &TiledProjection)>,
     mut q_cursor: Query<(&mut Transform, &mut Visibility), With<Cursor>>,
+    mut q_sprite: Query<&mut Sprite>,
+    grid: Res<GridEntities>,
 ) {
     let window = windows.get_primary().unwrap();
 
     if let Some(pos) = window.cursor_position() {
-        for (cam, t, proj) in q_camera.iter() {
-            if let Some(p) = proj.screen_to_world(cam, &windows, t, pos) {
+        for (cam, cam_transform, proj) in q_camera.iter() {
+            if let Some(p) = proj.screen_to_world(cam, &windows, cam_transform, pos) {
 
-                if let Some(mut p) = proj.world_to_tile_center(t, p) {
+                if let Some(mut p) = proj.world_to_tile_center(cam_transform, p) {
                     p.z = 2.0;
 
-                    let (mut t, mut v) = q_cursor.single_mut(); 
+                    let (mut cursor_transform, mut v) = q_cursor.single_mut(); 
                     v.is_visible = true;
     
-                    t.translation = p;
+                    cursor_transform.translation = p;
+
+                    if input.just_pressed(MouseButton::Left) {
+                        let i = proj.world_to_tile(cam_transform, p).unwrap();
+                        if let Some(entity) = grid.0.get(&i) {
+                            if let Ok(mut sprite) = q_sprite.get_mut(entity.clone()) {
+                                sprite.color = Color::rgb_u8(255, 0, 255);
+                            } else {
+                            }
+                        } else {
+                        }
+                    }
+
                     return;
                 }
 
