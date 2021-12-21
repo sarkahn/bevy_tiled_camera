@@ -98,7 +98,7 @@ impl SizedGrid {
         world_pos: Vec3,
     ) -> Option<Vec3> {
         if let Some(tile) = self.world_to_tile(cam_transform, world_pos) {
-            return Some(self.tile_center_world_unchecked(cam_transform, tile.into()));
+            return Some(self.tile_center_world_unchecked(cam_transform, tile));
         }
         None
     }

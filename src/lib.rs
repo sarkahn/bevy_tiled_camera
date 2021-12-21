@@ -6,11 +6,6 @@
 //!
 //! A simple camera for properly displaying low resolution pixel perfect 2D games in bevy.
 //!
-//! ---
-//! ![](images/demo.gif)
-//!
-//! ---
-//!
 //! This camera will scale up the viewport as much as possible while mainting your target
 //! resolution and avoiding pixel artifacts.
 //!
