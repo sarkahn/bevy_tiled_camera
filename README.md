@@ -43,7 +43,7 @@ Note this is only half the work needed to avoid artifacts with low resolution pi
 You also need to ensure the camera position and your sprite edges are aligned to the
 pixel grid.
 
-You can change the camera settings at any time by adjusting the [TiledProjection](src/projection.rs) component on the ra entity.
+You can change the camera settings at any time by adjusting the [TiledProjection](src/projection.rs) component on the camera entity.
 
 ## World Space
 Note that this projection assumes the size of one tile is equal to one world unit. This is different than Bevy's default 2D ographic camera which assumes one *pixel* is equal to one world unit.
