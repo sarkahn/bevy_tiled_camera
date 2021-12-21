@@ -1,6 +1,6 @@
 use bevy::{
     prelude::*,
-    render::{camera::{CameraProjection, DepthCalculation}},
+    render::camera::{CameraProjection, DepthCalculation},
 };
 
 use crate::sized_grid::{TileCenterIterator, TilePosIterator};
@@ -8,7 +8,7 @@ use crate::sized_grid::{TileCenterIterator, TilePosIterator};
 use super::sized_grid::SizedGrid;
 
 /// A projection which will adjust itself based on your target pixels per tile and tile count.
-/// 
+///
 /// The camera view will be scaled up to fill the window as much as possible while displaying
 /// your target tile count and not deforming pixels.
 ///
@@ -32,7 +32,7 @@ pub struct TiledProjection {
 }
 
 impl TiledProjection {
-    fn new(target_tile_count: (u32,u32)) -> Self {
+    fn new(target_tile_count: (u32, u32)) -> Self {
         let target_tile_count = UVec2::from(target_tile_count);
         let mut proj = TiledProjection {
             left: -1.0,
@@ -64,7 +64,7 @@ impl TiledProjection {
             centered: false,
             tile_count: target_tile_count,
             pixels_per_tile: 8,
-            grid: SizedGrid::new_uncentered(target_tile_count.into())
+            grid: SizedGrid::new_uncentered(target_tile_count.into()),
         };
         proj.set_tile_count(target_tile_count.into());
         proj
@@ -87,7 +87,7 @@ impl TiledProjection {
         self.pixels_per_tile
     }
 
-    pub fn set_tile_count(&mut self, tile_count: (u32,u32)) {
+    pub fn set_tile_count(&mut self, tile_count: (u32, u32)) {
         self.grid = match self.centered {
             true => SizedGrid::new(tile_count),
             false => SizedGrid::new_uncentered(tile_count),
@@ -105,9 +105,13 @@ impl TiledProjection {
     }
 
     /// Converts a tile index to it's tile position in world space, or None if it's out of bounds.
-    /// 
-    /// The "position" of a tile in world space is it's bottom left corner. 
-    pub fn tile_to_world(&self, cam_transform: &GlobalTransform, tile_pos: (i32,i32)) -> Option<Vec3> {
+    ///
+    /// The "position" of a tile in world space is it's bottom left corner.
+    pub fn tile_to_world(
+        &self,
+        cam_transform: &GlobalTransform,
+        tile_pos: (i32, i32),
+    ) -> Option<Vec3> {
         self.grid.tile_to_world(cam_transform, tile_pos)
     }
 
@@ -117,15 +121,19 @@ impl TiledProjection {
     }
 
     /// Converts a tile index to it's tile center in world space.
-    /// 
+    ///
     /// Returns none if the position is out of bounds.
-    pub fn tile_center_world(&self, cam_transform: &GlobalTransform, tile_pos: (i32,i32)) -> Option<Vec3> {
+    pub fn tile_center_world(
+        &self,
+        cam_transform: &GlobalTransform,
+        tile_pos: (i32, i32),
+    ) -> Option<Vec3> {
         self.grid.tile_to_tile_center_world(cam_transform, tile_pos)
     }
 
-
     /// Returns the center of a camera tile in world space, or None if it's out of bounds.
-    pub fn world_to_tile_center(&self, 
+    pub fn world_to_tile_center(
+        &self,
         cam_transform: &GlobalTransform,
         world_pos: Vec3,
     ) -> Option<Vec3> {
@@ -138,7 +146,7 @@ impl TiledProjection {
     }
 
     /// An iterator over the position in world space of every tile of the camera.
-    /// 
+    ///
     /// The "position" of a tile in world space is it's bottom left corner.
     pub fn tile_pos_iter(&self, transform: &GlobalTransform) -> TilePosIterator {
         self.grid.pos_iter(transform)
@@ -154,7 +162,7 @@ impl TiledProjection {
     ) -> Option<Vec3> {
         let window = windows.get(camera.window)?;
         let window_size = Vec2::new(window.width(), window.height());
-    
+
         // Convert screen position [0..resolution] to ndc [-1..1]
         let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
 
@@ -165,12 +173,12 @@ impl TiledProjection {
         if below_min.any() || above_max.any() {
             return None;
         }
-    
+
         let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix.inverse();
-    
+
         let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
         let world_pos = world_pos.truncate().extend(0.0);
-    
+
         Some(world_pos)
     }
 
@@ -204,7 +212,7 @@ impl TiledProjection {
 
 impl Default for TiledProjection {
     fn default() -> Self {
-        TiledProjection::new((5,5))
+        TiledProjection::new((5, 5))
     }
 }
 
