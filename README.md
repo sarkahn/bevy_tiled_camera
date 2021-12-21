@@ -46,7 +46,7 @@ pixel grid.
 You can change the camera settings at any time by adjusting the [TiledProjection](src/projection.rs) component on the camera entity.
 
 ## World Space
-Note that this projection assumes the size of one tile is equal to one world unit. This is different than Bevy's default 2D ographic camera which assumes one *pixel* is equal to one world unit.
+Note that this projection assumes the size of one tile is equal to one world unit. This is different than Bevy's default 2D orthographic camera which assumes one *pixel* is equal to one world unit.
 
 ## Versions
 | bevy | bevy_tiled_camera |
