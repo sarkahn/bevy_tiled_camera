@@ -51,11 +51,9 @@
 //! ## Versions
 //! | bevy | bevy_tiled_camera |
 //! | --- | --- |
+//! | 0.6 | 0.3.0 |
 //! | 0.5 | 0.2.4 |
 //! | 0.5 | 0.2.3 |
-//! 
-//! *There is currently a bug in bevy version 0.5 where the camera projection
-//! does not update unless you actively resize the window.*
 
 use bevy::prelude::*;
 use bevy::render::{
@@ -64,7 +62,7 @@ use bevy::render::{
     view::VisibleEntities,
 };
 
-mod position_grid;
+mod sized_grid;
 
 pub use projection::TiledProjection;
 
@@ -149,7 +147,7 @@ impl Default for TiledCameraBundle {
                 ..Default::default()
             },
             transform,
-            projection: Default::default(),
+            projection,
             visible_entities: Default::default(),
             frustum: Default::default(),
             global_transform: Default::default(),

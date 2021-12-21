@@ -3,11 +3,12 @@ use bevy::{
     render::{camera::{CameraProjection, DepthCalculation}},
 };
 
-use crate::position_grid::TileCenterIterator;
+use crate::sized_grid::{TileCenterIterator, TilePosIterator};
 
-use super::position_grid::SizedGrid;
+use super::sized_grid::SizedGrid;
 
 /// A projection which will adjust itself based on your target pixels per tile and tile count.
+/// 
 /// The camera view will be scaled up to fill the window as much as possible while displaying
 /// your target tile count and not deforming pixels.
 ///
@@ -31,7 +32,6 @@ pub struct TiledProjection {
 }
 
 impl TiledProjection {
-    
     fn new(target_tile_count: (u32,u32)) -> Self {
         let target_tile_count = UVec2::from(target_tile_count);
         let mut proj = TiledProjection {
@@ -104,21 +104,27 @@ impl TiledProjection {
         };
     }
 
-    /// Returns a tile position in world space
+    /// Converts a tile index to it's tile position in world space, or None if it's out of bounds.
+    /// 
+    /// The "position" of a tile in world space is it's bottom left corner. 
     pub fn tile_to_world(&self, cam_transform: &GlobalTransform, tile_pos: (i32,i32)) -> Option<Vec3> {
         self.grid.tile_to_world(cam_transform, tile_pos)
     }
 
+    /// Converts a world position to it's camera tile index, or None if it's out of bounds.
     pub fn world_to_tile(&self, cam_transform: &GlobalTransform, world_pos: Vec3) -> Option<IVec2> {
         self.grid.world_to_tile(cam_transform, world_pos)
     }
 
+    /// Converts a tile index to it's tile center in world space.
+    /// 
+    /// Returns none if the position is out of bounds.
     pub fn tile_center_world(&self, cam_transform: &GlobalTransform, tile_pos: (i32,i32)) -> Option<Vec3> {
         self.grid.tile_to_tile_center_world(cam_transform, tile_pos)
     }
 
 
-    /// Returns the center of a camera tile in world space, or none if it's out of bounds.
+    /// Returns the center of a camera tile in world space, or None if it's out of bounds.
     pub fn world_to_tile_center(&self, 
         cam_transform: &GlobalTransform,
         world_pos: Vec3,
@@ -129,6 +135,13 @@ impl TiledProjection {
     /// An iterator over the center position in world space of every "tile" of the camera.
     pub fn tile_center_iter(&self, transform: &GlobalTransform) -> TileCenterIterator {
         self.grid.center_iter(transform)
+    }
+
+    /// An iterator over the position in world space of every tile of the camera.
+    /// 
+    /// The "position" of a tile in world space is it's bottom left corner.
+    pub fn tile_pos_iter(&self, transform: &GlobalTransform) -> TilePosIterator {
+        self.grid.pos_iter(transform)
     }
 
     /// Converts a screen position [0..resolution] to a world position
@@ -194,8 +207,6 @@ impl Default for TiledProjection {
         TiledProjection::new((5,5))
     }
 }
-
-
 
 impl CameraProjection for TiledProjection {
     fn get_projection_matrix(&self) -> bevy::math::Mat4 {

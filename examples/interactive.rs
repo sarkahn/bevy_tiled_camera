@@ -175,7 +175,6 @@ fn spawn_sprites(
             
             let tile_index = proj.world_to_tile(&cam_transform, p).unwrap();
             grid.0.insert(tile_index, entity);
-            println!("Inserting entity at grid pos {}", tile_index);
         }
     }
 }
