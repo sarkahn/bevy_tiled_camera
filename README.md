@@ -15,7 +15,7 @@ This camera will scale up the viewport as much as possible while mainting your t
 resolution and avoiding pixel artifacts.
 
 ## Example
-```no_run
+```rs
 use bevy_tiled_camera::*;
 use bevy::prelude::*;
 
