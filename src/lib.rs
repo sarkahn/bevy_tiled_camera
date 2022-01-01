@@ -103,13 +103,13 @@ impl TiledCameraBundle {
     }
 
     /// Sets the projection to display the given tile count.
-    pub fn with_tile_count(mut self, tile_count: (u32, u32)) -> Self {
+    pub fn with_tile_count(mut self, tile_count: [u32;2]) -> Self {
         self.projection.set_tile_count(tile_count);
         self
     }
 
     /// Sets the camera position on spawn.
-    pub fn with_camera_position(mut self, position: (f32, f32)) -> Self {
+    pub fn with_camera_position(mut self, position: [f32;2]) -> Self {
         let position = Vec2::from(position);
         let old_pos = self.transform.translation;
         self.transform.translation = position.extend(old_pos.z);
@@ -124,7 +124,7 @@ impl TiledCameraBundle {
 
     /// Camera will be scaled to be as close as possible to the given target resolution given
     /// pixels per tile.
-    pub fn with_target_resolution(self, pixels_per_tile: u32, resolution: (u32, u32)) -> Self {
+    pub fn with_target_resolution(self, pixels_per_tile: u32, resolution: [u32;2]) -> Self {
         let resolution = UVec2::from(resolution);
         self.with_pixels_per_tile(pixels_per_tile)
             .with_tile_count((resolution / pixels_per_tile).into())

@@ -18,7 +18,7 @@ impl SizedGrid {
     /// |-1, 0| 0, 0| 1, 0|
     ///
     /// |-1,-1| 0,-1| 1,-1|
-    pub fn new(tile_count: (u32, u32)) -> Self {
+    pub fn new(tile_count: [u32;2]) -> Self {
         let tile_count = UVec2::from(tile_count);
         let b = (tile_count % 2).cmpeq(UVec2::ZERO);
         let center_offset = Vec2::select(b, Vec2::new(0.5, 0.5), Vec2::ZERO);
@@ -39,7 +39,7 @@ impl SizedGrid {
     /// | 0, 1| 1, 1| 2, 1|
     ///
     /// | 0, 0| 1, 0| 2, 0|
-    pub fn new_uncentered(tile_count: (u32, u32)) -> Self {
+    pub fn new_uncentered(tile_count: [u32;2]) -> Self {
         let tile_count = UVec2::from(tile_count);
         let center_offset = Vec2::new(0.5, 0.5);
 
@@ -54,7 +54,7 @@ impl SizedGrid {
     ///
     /// The "position" of a tile in world space is it's bottom left corner.
     /// Returns None if the position is out of bounds.
-    pub fn tile_to_world(&self, transform: &GlobalTransform, tile_pos: (i32, i32)) -> Option<Vec3> {
+    pub fn tile_to_world(&self, transform: &GlobalTransform, tile_pos: [i32;2]) -> Option<Vec3> {
         let tile_pos = IVec2::from(tile_pos);
         if !self.tile_in_bounds(tile_pos) {
             return None;
@@ -79,7 +79,7 @@ impl SizedGrid {
     pub fn tile_to_tile_center_world(
         &self,
         transform: &GlobalTransform,
-        tile_pos: (i32, i32),
+        tile_pos: [i32;2],
     ) -> Option<Vec3> {
         let tile_pos = IVec2::from(tile_pos);
         if !self.tile_in_bounds(tile_pos) {
@@ -242,70 +242,70 @@ mod test {
     use super::SizedGrid;
     #[test]
     fn tile_to_world_odd() {
-        let grid = SizedGrid::new((3, 3));
+        let grid = SizedGrid::new([3, 3]);
         let t = GlobalTransform::default();
-        let p = grid.tile_to_world(&t, (0, 0)).unwrap();
+        let p = grid.tile_to_world(&t, [0, 0]).unwrap();
         assert_eq!(p.x, -0.5);
         assert_eq!(p.y, -0.5);
     }
 
     #[test]
     fn tile_to_world_even() {
-        let grid = SizedGrid::new((2, 2));
+        let grid = SizedGrid::new([2, 2]);
         let t = GlobalTransform::default();
-        let p = grid.tile_to_world(&t, (0, 0)).unwrap();
+        let p = grid.tile_to_world(&t, [0, 0]).unwrap();
         assert_eq!(p.x, 0.0);
         assert_eq!(p.y, 0.0);
     }
 
     #[test]
     fn tile_center_odd() {
-        let grid = SizedGrid::new((3, 3));
+        let grid = SizedGrid::new([3, 3]);
         let t = GlobalTransform::default();
-        let p = grid.tile_to_tile_center_world(&t, (0, 0)).unwrap();
+        let p = grid.tile_to_tile_center_world(&t, [0, 0]).unwrap();
         assert_eq!(p.x, 0.0);
         assert_eq!(p.y, 0.0);
 
-        let p = grid.tile_to_tile_center_world(&t, (1, 0)).unwrap();
+        let p = grid.tile_to_tile_center_world(&t, [1, 0]).unwrap();
         assert_eq!(p.x, 1.0);
     }
 
     #[test]
     fn tile_center_even() {
         // Even tile pos should be + 0.5
-        let grid = SizedGrid::new((2, 2));
+        let grid = SizedGrid::new([2, 2]);
         let t = GlobalTransform::default();
 
-        let p = grid.tile_to_tile_center_world(&t, (0, 0)).unwrap();
+        let p = grid.tile_to_tile_center_world(&t, [0, 0]).unwrap();
         assert_eq!(p.x, 0.5);
         assert_eq!(p.y, 0.5);
 
-        let p = grid.tile_to_tile_center_world(&t, (-1, -1)).unwrap();
+        let p = grid.tile_to_tile_center_world(&t, [-1, -1]).unwrap();
         assert_eq!(p.x, -0.5);
         assert_eq!(p.y, -0.5);
     }
 
     #[test]
     fn tile_pos_diff() {
-        let grid = SizedGrid::new((3, 2));
+        let grid = SizedGrid::new([3, 2]);
         let t = GlobalTransform::default();
-        let p = grid.tile_to_world(&t, (0, 0)).unwrap();
+        let p = grid.tile_to_world(&t, [0, 0]).unwrap();
         assert_eq!(p.x, -0.5);
         assert_eq!(p.y, 0.0);
     }
 
     #[test]
     fn tile_center_diff() {
-        let grid = SizedGrid::new((3, 2));
+        let grid = SizedGrid::new([3, 2]);
         let t = GlobalTransform::default();
-        let p = grid.tile_to_tile_center_world(&t, (0, 0)).unwrap();
+        let p = grid.tile_to_tile_center_world(&t, [0, 0]).unwrap();
         assert_eq!(p.x, 0.0);
         assert_eq!(p.y, 0.5);
     }
 
     #[test]
     fn tile_to_local_even() {
-        let grid = SizedGrid::new((2, 2));
+        let grid = SizedGrid::new([2, 2]);
         let p = grid.tile_to_local(IVec2::new(0, 0));
         assert_eq!(p.x, 0.0);
         assert_eq!(p.y, 0.0);
@@ -313,7 +313,7 @@ mod test {
 
     #[test]
     fn tile_to_local_odd() {
-        let grid = SizedGrid::new((3, 3));
+        let grid = SizedGrid::new([3, 3]);
         let p = grid.tile_to_local(IVec2::new(0, 0));
         assert_eq!(p.x, -0.5);
         assert_eq!(p.y, -0.5);
@@ -322,15 +322,15 @@ mod test {
     #[test]
     fn uncentered_odd() {
         let t = GlobalTransform::default();
-        let grid = SizedGrid::new_uncentered((3, 3));
-        let p = grid.tile_to_tile_center_world(&t, (0, 0)).unwrap();
+        let grid = SizedGrid::new_uncentered([3, 3]);
+        let p = grid.tile_to_tile_center_world(&t, [0, 0]).unwrap();
         assert_eq!(p.x, 0.5);
         assert_eq!(p.y, 0.5);
     }
 
     #[test]
     fn local_to_tile_odd() {
-        let grid = SizedGrid::new((3, 3));
+        let grid = SizedGrid::new([3, 3]);
 
         let p = grid.local_to_tile(Vec2::new(0.85, 0.85));
 
@@ -340,7 +340,7 @@ mod test {
 
     #[test]
     fn local_to_tile_even() {
-        let grid = SizedGrid::new((4, 4));
+        let grid = SizedGrid::new([4, 4]);
 
         let p = grid.local_to_tile(Vec2::new(0.85, 0.85));
 
@@ -350,18 +350,18 @@ mod test {
 
     #[test]
     fn moved_tile_to_world() {
-        let grid = SizedGrid::new((3, 3));
+        let grid = SizedGrid::new([3, 3]);
         let t = GlobalTransform::from_xyz(3.0, 0.0, 0.0);
-        let p = grid.tile_to_world(&t, (0, 0)).unwrap();
+        let p = grid.tile_to_world(&t, [0, 0]).unwrap();
         assert_eq!(p.x, 2.5);
         assert_eq!(p.y, -0.5);
     }
 
     #[test]
     fn moved_tile_to_center() {
-        let grid = SizedGrid::new((3, 3));
+        let grid = SizedGrid::new([3, 3]);
         let t = GlobalTransform::from_xyz(3.0, 0.0, 0.0);
-        let p = grid.tile_to_tile_center_world(&t, (0, 0)).unwrap();
+        let p = grid.tile_to_tile_center_world(&t, [0, 0]).unwrap();
         assert_eq!(p.x, 3.0);
         assert_eq!(p.y, 0.0);
     }
@@ -369,7 +369,7 @@ mod test {
     #[test]
     fn min() {
         let t = GlobalTransform::default();
-        let grid = SizedGrid::new((3, 3));
+        let grid = SizedGrid::new([3, 3]);
         let min = grid.min_world_position(&t);
 
         assert_eq!(min.x, -1.5);
@@ -379,7 +379,7 @@ mod test {
     #[test]
     fn center_iter() {
         let t = GlobalTransform::default();
-        let grid = SizedGrid::new((3, 3));
+        let grid = SizedGrid::new([3, 3]);
 
         let iter = grid.center_iter(&t);
 
@@ -399,7 +399,7 @@ mod test {
     #[test]
     fn pos_iter() {
         let t = GlobalTransform::default();
-        let grid = SizedGrid::new((3, 3));
+        let grid = SizedGrid::new([3, 3]);
 
         let iter = grid.pos_iter(&t);
 

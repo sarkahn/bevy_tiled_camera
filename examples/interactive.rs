@@ -44,7 +44,7 @@ struct TileCount {
 struct GridEntities(HashMap<IVec2, Entity>);
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let tile_count = (2, 2);
+    let tile_count = [2, 2];
     let cam_bundle = TiledCameraBundle::new()
         .with_centered(true)
         .with_pixels_per_tile(8)

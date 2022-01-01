@@ -32,7 +32,7 @@ pub struct TiledProjection {
 }
 
 impl TiledProjection {
-    fn new(target_tile_count: (u32, u32)) -> Self {
+    fn new(target_tile_count: [u32;2]) -> Self {
         let target_tile_count = UVec2::from(target_tile_count);
         let mut proj = TiledProjection {
             left: -1.0,
@@ -51,7 +51,7 @@ impl TiledProjection {
         proj
     }
 
-    pub fn uncentered(target_tile_count: (u32, u32)) -> Self {
+    pub fn uncentered(target_tile_count: [u32;2]) -> Self {
         let target_tile_count = UVec2::from(target_tile_count);
         let mut proj = TiledProjection {
             left: -1.0,
@@ -87,7 +87,7 @@ impl TiledProjection {
         self.pixels_per_tile
     }
 
-    pub fn set_tile_count(&mut self, tile_count: (u32, u32)) {
+    pub fn set_tile_count(&mut self, tile_count: [u32;2]) {
         self.grid = match self.centered {
             true => SizedGrid::new(tile_count),
             false => SizedGrid::new_uncentered(tile_count),
@@ -110,7 +110,7 @@ impl TiledProjection {
     pub fn tile_to_world(
         &self,
         cam_transform: &GlobalTransform,
-        tile_pos: (i32, i32),
+        tile_pos: [i32;2],
     ) -> Option<Vec3> {
         self.grid.tile_to_world(cam_transform, tile_pos)
     }
@@ -126,7 +126,7 @@ impl TiledProjection {
     pub fn tile_center_world(
         &self,
         cam_transform: &GlobalTransform,
-        tile_pos: (i32, i32),
+        tile_pos: [i32;2],
     ) -> Option<Vec3> {
         self.grid.tile_to_tile_center_world(cam_transform, tile_pos)
     }
@@ -215,7 +215,7 @@ impl TiledProjection {
 
 impl Default for TiledProjection {
     fn default() -> Self {
-        TiledProjection::new((5, 5))
+        TiledProjection::new([5, 5])
     }
 }
 
