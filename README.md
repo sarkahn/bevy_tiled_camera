@@ -15,7 +15,7 @@ This camera will scale up the viewport as much as possible while mainting your t
 resolution and avoiding pixel artifacts.
 
 ## Example
-```rs
+```rust
 use bevy_tiled_camera::*;
 use bevy::prelude::*;
 
@@ -25,7 +25,7 @@ fn setup(mut commands:Commands) {
   // 8 pixels per tile.
   let camera_bundle = TiledCameraBundle::new()
       .with_pixels_per_tile(8)
-      .with_tile_count((80,25));
+      .with_tile_count([80,25]);
 
   commands.spawn_bundle(camera_bundle);
 }

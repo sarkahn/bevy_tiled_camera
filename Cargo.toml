@@ -7,8 +7,8 @@ authors = ["sark"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "5479047aa213ab0276565f7d6048e01deb7d326a", default-features = false, features = ["render"] }
+bevy = { version = "0.6", default-features = false, features = ["render"] }
 
 [dev-dependencies]
-bevy = {git = "https://github.com/bevyengine/bevy", rev = "5479047aa213ab0276565f7d6048e01deb7d326a", features = ["png", "bevy_winit", "bevy_render"]}
+bevy = { version = "0.6", default-features = false, features = ["png", "bevy_winit", "bevy_render"] }
 assert_approx_eq = "1.1.0"

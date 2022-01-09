@@ -20,7 +20,7 @@
 //!   // 8 pixels per tile.
 //!   let camera_bundle = TiledCameraBundle::new()
 //!       .with_pixels_per_tile(8)
-//!       .with_tile_count((80,25));
+//!       .with_tile_count([80,25]);
 //!
 //!   commands.spawn_bundle(camera_bundle);
 //! }
@@ -65,6 +65,15 @@ pub mod projection;
 
 pub struct TiledCameraPlugin;
 
+impl Plugin for TiledCameraPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_system_to_stage(
+            CoreStage::PostUpdate,
+            camera::camera_system::<TiledProjection>,
+        );
+    }
+}
+
 /// Component bundle with functions to specify how you want the camera set up.
 ///
 /// ## Example
@@ -74,9 +83,9 @@ pub struct TiledCameraPlugin;
 /// fn setup(mut commands:Commands) {
 ///   let camera_bundle = TiledCameraBundle::new()
 ///       .with_pixels_per_tile(8)
-///       .with_tile_count((80,25))
+///       .with_tile_count([80,25])
 ///       .with_centered(false)
-///       .with_camera_position((5.0,5.0));
+///       .with_camera_position([5.0,5.0]);
 ///
 ///   commands.spawn_bundle(camera_bundle);
 /// }
@@ -103,13 +112,13 @@ impl TiledCameraBundle {
     }
 
     /// Sets the projection to display the given tile count.
-    pub fn with_tile_count(mut self, tile_count: [u32;2]) -> Self {
+    pub fn with_tile_count(mut self, tile_count: [u32; 2]) -> Self {
         self.projection.set_tile_count(tile_count);
         self
     }
 
     /// Sets the camera position on spawn.
-    pub fn with_camera_position(mut self, position: [f32;2]) -> Self {
+    pub fn with_camera_position(mut self, position: [f32; 2]) -> Self {
         let position = Vec2::from(position);
         let old_pos = self.transform.translation;
         self.transform.translation = position.extend(old_pos.z);
@@ -124,7 +133,7 @@ impl TiledCameraBundle {
 
     /// Camera will be scaled to be as close as possible to the given target resolution given
     /// pixels per tile.
-    pub fn with_target_resolution(self, pixels_per_tile: u32, resolution: [u32;2]) -> Self {
+    pub fn with_target_resolution(self, pixels_per_tile: u32, resolution: [u32; 2]) -> Self {
         let resolution = UVec2::from(resolution);
         self.with_pixels_per_tile(pixels_per_tile)
             .with_tile_count((resolution / pixels_per_tile).into())
@@ -147,14 +156,5 @@ impl Default for TiledCameraBundle {
             frustum: Default::default(),
             global_transform: Default::default(),
         }
-    }
-}
-
-impl Plugin for TiledCameraPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_system_to_stage(
-            CoreStage::PostUpdate,
-            camera::camera_system::<TiledProjection>,
-        );
     }
 }

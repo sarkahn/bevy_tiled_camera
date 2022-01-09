@@ -9,7 +9,7 @@ pub struct SizedGrid {
 }
 
 impl SizedGrid {
-    /// Create a new grid where the origin (0,0) is the center of the grid.
+    /// Create a new grid where the origin [0,0] is the center of the grid.
     ///
     /// **IE:**
     ///
@@ -18,7 +18,7 @@ impl SizedGrid {
     /// |-1, 0| 0, 0| 1, 0|
     ///
     /// |-1,-1| 0,-1| 1,-1|
-    pub fn new(tile_count: [u32;2]) -> Self {
+    pub fn new(tile_count: [u32; 2]) -> Self {
         let tile_count = UVec2::from(tile_count);
         let b = (tile_count % 2).cmpeq(UVec2::ZERO);
         let center_offset = Vec2::select(b, Vec2::new(0.5, 0.5), Vec2::ZERO);
@@ -30,7 +30,7 @@ impl SizedGrid {
         }
     }
 
-    /// Create a new grid where the origin (0,0) is the bottom left of the grid.
+    /// Create a new grid where the origin [0,0] is the bottom left of the grid.
     ///
     /// **IE:**
     ///
@@ -39,7 +39,7 @@ impl SizedGrid {
     /// | 0, 1| 1, 1| 2, 1|
     ///
     /// | 0, 0| 1, 0| 2, 0|
-    pub fn new_uncentered(tile_count: [u32;2]) -> Self {
+    pub fn new_uncentered(tile_count: [u32; 2]) -> Self {
         let tile_count = UVec2::from(tile_count);
         let center_offset = Vec2::new(0.5, 0.5);
 
@@ -54,7 +54,7 @@ impl SizedGrid {
     ///
     /// The "position" of a tile in world space is it's bottom left corner.
     /// Returns None if the position is out of bounds.
-    pub fn tile_to_world(&self, transform: &GlobalTransform, tile_pos: [i32;2]) -> Option<Vec3> {
+    pub fn tile_to_world(&self, transform: &GlobalTransform, tile_pos: [i32; 2]) -> Option<Vec3> {
         let tile_pos = IVec2::from(tile_pos);
         if !self.tile_in_bounds(tile_pos) {
             return None;
@@ -79,7 +79,7 @@ impl SizedGrid {
     pub fn tile_to_tile_center_world(
         &self,
         transform: &GlobalTransform,
-        tile_pos: [i32;2],
+        tile_pos: [i32; 2],
     ) -> Option<Vec3> {
         let tile_pos = IVec2::from(tile_pos);
         if !self.tile_in_bounds(tile_pos) {

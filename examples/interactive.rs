@@ -344,9 +344,7 @@ fn cursor_system(
                         if let Some(entity) = grid.0.get(&i) {
                             if let Ok(mut sprite) = q_sprite.get_mut(entity.clone()) {
                                 sprite.color = Color::rgb_u8(255, 0, 255);
-                            } else {
                             }
-                        } else {
                         }
                     }
 
