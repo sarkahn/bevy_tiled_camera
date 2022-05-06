@@ -51,8 +51,9 @@
 //! | 0.5 | 0.2.3 |
 
 use bevy::prelude::*;
+use bevy::render::camera::Camera2d;
 use bevy::render::{
-    camera::{self, Camera, CameraPlugin},
+    camera::{self, Camera},
     primitives::Frustum,
     view::VisibleEntities,
 };
@@ -98,6 +99,7 @@ pub struct TiledCameraBundle {
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     pub frustum: Frustum,
+    pub marker: Camera2d,
 }
 
 impl TiledCameraBundle {
@@ -142,19 +144,16 @@ impl TiledCameraBundle {
 
 impl Default for TiledCameraBundle {
     fn default() -> Self {
-        let name = Some(CameraPlugin::CAMERA_2D.to_string());
         let projection = TiledProjection::default();
         let transform = Transform::from_xyz(0.0, 0.0, projection.far - 0.1);
         TiledCameraBundle {
-            camera: Camera {
-                name,
-                ..Default::default()
-            },
+            camera: Camera::default(),
             transform,
             projection,
             visible_entities: Default::default(),
             frustum: Default::default(),
             global_transform: Default::default(),
+            marker: Camera2d,
         }
     }
 }

@@ -51,6 +51,7 @@ Note that this projection assumes the size of one tile is equal to one world uni
 ## Versions
 | bevy | bevy_tiled_camera |
 | --- | --- |
+| 0.7 | 0.3.1 |
 | 0.6 | 0.3.0 |
 | 0.5 | 0.2.4 |
 | 0.5 | 0.2.3 |

@@ -1,6 +1,6 @@
 use bevy::{
     prelude::*,
-    render::camera::{CameraProjection, DepthCalculation},
+    render::camera::{CameraProjection, DepthCalculation, RenderTarget},
 };
 
 use crate::sized_grid::{TileCenterIterator, TilePosIterator};
@@ -160,8 +160,7 @@ impl TiledProjection {
         camera_transform: &GlobalTransform,
         screen_pos: Vec2,
     ) -> Option<Vec3> {
-        let window = windows.get(camera.window)?;
-        let window_size = Vec2::new(window.width(), window.height());
+        let window_size = get_window_size(camera, windows)?;
 
         // Convert screen position [0..resolution] to ndc [-1..1]
         let ndc = (screen_pos / window_size) * 2.0 - Vec2::ONE;
@@ -190,8 +189,7 @@ impl TiledProjection {
         camera_transform: &GlobalTransform,
         world_position: Vec3,
     ) -> Option<Vec2> {
-        let window = windows.get(camera.window)?;
-        let window_size = Vec2::new(window.width(), window.height());
+        let window_size = get_window_size(camera, windows)?;
 
         // Build a transform to convert from world to NDC using camera data
         let world_to_ndc: Mat4 =
@@ -211,6 +209,16 @@ impl TiledProjection {
             None
         }
     }
+}
+
+fn get_window_size(camera: &Camera, windows: &Windows) -> Option<Vec2> {
+    let window_id = match camera.target {
+        RenderTarget::Window(window_id) => window_id,
+        RenderTarget::Image(_) => return None,
+    };
+    let window = windows.get(window_id)?;
+    let window_size = Vec2::new(window.width(), window.height());
+    Some(window_size)
 }
 
 impl Default for TiledProjection {
