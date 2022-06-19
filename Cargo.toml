@@ -2,13 +2,12 @@
 name = "bevy_tiled_camera"
 edition = "2021"
 authors = ["sark"]
+description = "A camera for rendering low resolution pixel art in bevy."
 homepage = "https://github.com/sarkahn/bevy_tiled_camera"
-repository = "https://github.com/sarkahn/bevy_tiled_camera"
+keywords = ["bevy", "2d", "camera", "pixels"]
 license = "MIT"
 readme = "README.md"
 version = "0.4.0"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 bevy = { default_features=false, features=["render"], git = "https://github.com/bevyengine/bevy", rev = "c6222f1acc4a5d4478b5cb188f0eda24afb6546a" }
