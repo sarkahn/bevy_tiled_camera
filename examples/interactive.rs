@@ -1,4 +1,4 @@
-use std::ops::Add;
+
 
 /// A simple interactive demo. Resize the window to see the viewport auto-adjust.
 ///
@@ -39,11 +39,6 @@ struct SpriteTextures {
 }
 
 #[derive(Component)]
-struct TileCount {
-    pub count: UVec2,
-}
-
-#[derive(Component)]
 struct GridSprite;
 
 #[derive(Component)]
@@ -54,7 +49,7 @@ struct GridEntities(HashMap<IVec2, Entity>);
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tile_count = [2, 2];
     let cam_bundle = TiledCameraBundle::new()
-        .with_pixels_per_tile([8,8])
+        .with_pixels_per_tile(8)
         .with_tile_count(tile_count);
 
     commands.spawn_bundle(cam_bundle);
@@ -65,10 +60,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         tex_32x32: asset_server.load("32x32.png"),
         current: 0,
     };
-
-    commands.spawn().insert(TileCount {
-        count: tile_count.into(),
-    });
 
     commands.insert_resource(textures);
 
@@ -93,12 +84,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn handle_input(
     input: Res<Input<KeyCode>>,
     mut q_cam: Query<&mut TiledCamera>,
-    mut q_tile_count: Query<&mut TileCount>,
     mut sprite_textures: ResMut<SpriteTextures>,
 ) {
     if input.just_pressed(KeyCode::Up) {
-        let count = &mut q_cam.single_mut().tile_count;
-        count.y += 1;
+        q_cam.single_mut().tile_count.y += 1;
     }
 
     if input.just_pressed(KeyCode::Down) {
@@ -112,16 +101,15 @@ fn handle_input(
     }
 
     if input.just_pressed(KeyCode::Right) {
-        let count = &mut q_cam.single_mut().tile_count;
-        count.x += 1;
+        q_cam.single_mut().tile_count.x += 1;
     }
 
     if input.just_pressed(KeyCode::Tab) {
         sprite_textures.current = (sprite_textures.current + 1) % 3;
         q_cam.single_mut().pixels_per_tile = match sprite_textures.current {
-            1 => UVec2::splat(16),
-            2 => UVec2::splat(32),
-            _ => UVec2::splat(8),
+            1 => 16,
+            2 => 32,
+            _ => 8,
         };
     }
 }
@@ -129,16 +117,14 @@ fn handle_input(
 fn spawn_sprites(
     mut commands: Commands,
     mut grid: ResMut<GridEntities>,
-    q_sprite_count_changed: Query<&TileCount, Changed<TileCount>>,
     q_camera_changed: Query<&TiledCamera, Changed<TiledCamera>>,
     q_camera: Query<(&GlobalTransform, &TiledCamera)>,
     sprites_query: Query<Entity, (With<Sprite>, With<GridSprite>)>,
     sprite_textures: Res<SpriteTextures>,
 ) {
-    let sprite_count_changed = q_sprite_count_changed.get_single().is_ok();
-    let cam_changed = q_camera_changed.get_single().is_ok();
+    let cam_changed = !q_camera_changed.is_empty();
 
-    if sprite_count_changed || cam_changed {
+    if cam_changed {
         for entity in sprites_query.iter() {
             commands.entity(entity).despawn();
         }

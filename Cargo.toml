@@ -10,9 +10,9 @@ readme = "README.md"
 version = "0.4.0"
 
 [dependencies]
-bevy = { default_features=false, features=["render"], git = "https://github.com/bevyengine/bevy", rev = "c6222f1acc4a5d4478b5cb188f0eda24afb6546a" }
-sark_grids = "0.4.0"
+bevy = {path="../bevy", version="0.8.0-dev", default_features=false, features=["bevy_render"]}
+sark_grids = {path="../sark_grids_rs", version="0.5.0"}
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
-bevy = { default-features = false, features = ["png", "bevy_winit", "render", "x11"], git = "https://github.com/bevyengine/bevy", rev = "c6222f1acc4a5d4478b5cb188f0eda24afb6546a"}
+bevy = {path="../bevy", version="0.8.0-dev", default-features = false, features = ["png", "bevy_winit", "bevy_render", "bevy_sprite", "bevy_core_pipeline"]}
