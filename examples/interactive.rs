@@ -1,5 +1,3 @@
-
-
 /// A simple interactive demo. Resize the window to see the viewport auto-adjust.
 ///
 /// # Controls:
@@ -9,7 +7,7 @@
 use bevy::{
     ecs::prelude::*,
     input::Input,
-    math::{IVec2, UVec2, Vec2},
+    math::{IVec2, Vec2},
     prelude::*,
     render::texture::Image,
     sprite::{Sprite, SpriteBundle},
@@ -17,7 +15,7 @@ use bevy::{
     DefaultPlugins,
 };
 
-use bevy_tiled_camera::{TiledCameraBundle, TiledCameraPlugin, TiledCamera};
+use bevy_tiled_camera::{TiledCamera, TiledCameraBundle, TiledCameraPlugin};
 
 fn main() {
     App::new()
@@ -26,8 +24,7 @@ fn main() {
         .add_system(handle_input)
         .add_system(spawn_sprites)
         .add_plugins(DefaultPlugins)
-        // .add_system(cursor_system)
-        // .add_system(update_text)
+        .add_system(update_text)
         .run();
 }
 
@@ -78,7 +75,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // };
     //commands.spawn_bundle(cursor).insert(Cursor);
 
-    //make_ui(&mut commands, asset_server);
+    make_ui(&mut commands, asset_server);
 }
 
 fn handle_input(
@@ -112,6 +109,12 @@ fn handle_input(
             _ => 8,
         };
     }
+
+    if input.just_pressed(KeyCode::W) {
+        let cam = q_cam.single_mut();
+        let space = cam.world_space();
+        q_cam.single_mut().set_world_space(space.other());
+    }
 }
 
 fn spawn_sprites(
@@ -122,9 +125,7 @@ fn spawn_sprites(
     sprites_query: Query<Entity, (With<Sprite>, With<GridSprite>)>,
     sprite_textures: Res<SpriteTextures>,
 ) {
-    let cam_changed = !q_camera_changed.is_empty();
-
-    if cam_changed {
+    if !q_camera_changed.is_empty() {
         for entity in sprites_query.iter() {
             commands.entity(entity).despawn();
         }
@@ -134,7 +135,7 @@ fn spawn_sprites(
 
         for p in cam.tile_center_iter(cam_transform) {
             let sprite = Sprite {
-                custom_size: Some(Vec2::ONE),
+                custom_size: cam.unit_size(),
                 ..Default::default()
             };
             let texture = match sprite_textures.current {
@@ -148,7 +149,7 @@ fn spawn_sprites(
                 transform: Transform::from_translation(p.extend(0.0)),
                 ..Default::default()
             };
-            //let entity = 
+            //let entity =
             commands.spawn_bundle(bundle).insert(GridSprite)
             //.id()
             ;
@@ -159,142 +160,147 @@ fn spawn_sprites(
     }
 }
 
-// fn make_ui(commands: &mut Commands, asset_server: Res<AssetServer>) {
-//     let font_size = 23.0;
-//     let font = asset_server.load("RobotoMono-Regular.ttf");
-//     let color = Color::YELLOW;
-//     // Text with one section
-//     commands.spawn_bundle(TextBundle {
-//         style: Style {
-//             align_self: AlignSelf::FlexEnd,
-//             flex_wrap: FlexWrap::Wrap,
-//             ..Default::default()
-//         },
-//         // Use the `Text::with_section` constructor
-//         text: Text {
-//             sections: vec![
-//                 TextSection {
-//                     value: "Controls:\n  -Resize the window to see auto-scaling.".to_string(),
-//                     style: TextStyle {
-//                         font: font.clone(),
-//                         font_size,
-//                         color,
-//                     },
-//                 },
-//                 TextSection {
-//                     value: "\n  -Spacebar to toggle camera center.\n  -Arrow keys to adjust number of tiles.\n  -Tab to change textures.".to_string(),
-//                     style: TextStyle {
-//                         font: font.clone(),
-//                         font_size,
-//                         color,
-//                     },
-//                 },
-//                 // Tile count/ppu
-//                 TextSection {
-//                     value: String::default(),
-//                     style: TextStyle {
-//                         font: font.clone(),
-//                         font_size,
-//                         color,
-//                     },
-//                 },
-//                 // Window resolution
-//                 TextSection {
-//                     value: String::default(),
-//                     style: TextStyle {
-//                         font: font.clone(),
-//                         font_size,
-//                         color,
-//                     },
-//                 },
-//                 // Camera zoom
-//                 TextSection {
-//                     value: String::default(),
-//                     style: TextStyle {
-//                         font: font.clone(),
-//                         font_size,
-//                         color,
-//                     },
-//                 },
-//                 // Centered
-//                 TextSection {
-//                     value: String::default(),
-//                     style: TextStyle {
-//                         font: font.clone(),
-//                         font_size,
-//                         color,
-//                     },
-//                 },
-//                 // Cursor world pos
-//                 TextSection {
-//                     value: String::default(),
-//                     style: TextStyle {
-//                         font: font.clone(),
-//                         font_size,
-//                         color,
-//                     },
-//                 },
-//                 // Cursor tile pos
-//                 TextSection {
-//                     value: String::default(),
-//                     style: TextStyle {
-//                         font: font.clone(),
-//                         font_size,
-//                         color,
-//                     },
-//                 }
-//             ],
-//             ..Default::default()
-//         },
-//         ..Default::default()
-//     });
-// }
-
-// fn update_text(
-//     mut q_text: Query<&mut Text>,
+// fn check_cursor(
 //     windows: Res<Windows>,
-//     q_camera: Query<(&Camera, &GlobalTransform, &TiledProjection)>,
+//     q_cam: Query<(&Camera, &TiledCamera, &GlobalTransform, &Camera2d)>,
+//     //q_cam2: Query<(&Camera, &GlobalTransform)>
 // ) {
-//     let mut text = q_text.single_mut();
+//     for (cam, tcam, t, cam2d) in q_cam.iter() {
+//     //for (cam,t) in q_cam2.iter() {
+//         if let Some(window) = windows.get_primary() {
+//             if let Some(cursor_pos) = window.cursor_position() {
 
-//     let window = windows.get_primary().unwrap();
-//     if let Some(pos) = window.cursor_position() {
-//         for (cam, t, proj) in q_camera.iter() {
-//             if let Some(cursor_world) = proj.screen_to_world(cam, &windows, t, pos) {
-//                 let zoom = proj.zoom();
-//                 let tile_count = proj.tile_count();
-//                 let ppu = proj.pixels_per_tile();
-//                 let target_res = tile_count * ppu;
-//                 let cursor_x = format!("{:.2}", cursor_world.x);
-//                 let cursor_y = format!("{:.2}", cursor_world.y);
-//                 let window_res = Vec2::new(window.width(), window.height()).as_uvec2();
-//                 let centered = proj.centered();
+//                 if let Some(world_pos) = tcam.screen_to_world(cursor_pos, &cam, &t) {
 
-//                 text.sections[2].value = format!(
-//                     "\nProjection tiles: {}. Pixels Per Tile: {}",
-//                     tile_count, ppu
-//                 );
+//                     if let Some(w2s) = tcam.world_to_screen(world_pos, &cam, &t) {
+//                         //println!("Cursor pos {}. ScreenToWorld {}, WorldToScreen {}", cursor_pos, world_pos, w2s);
+//                     }
 
-//                 text.sections[3].value = format!(
-//                     "\nTarget resolution: {}.\nWindow resolution: {}. ",
-//                     target_res, window_res
-//                 );
-
-//                 text.sections[4].value = format!("\nProjection zoom: {}", zoom);
-
-//                 text.sections[5].value = format!("\nProjection centered: {}", centered);
-
-//                 text.sections[6].value = format!("\nCursor world pos: [{},{}]", cursor_x, cursor_y);
-
-//                 if let Some(tile_pos) = proj.world_to_tile(t, cursor_world) {
-//                     text.sections[7].value = format!("\nCursor tile pos: {}", tile_pos);
-//                 } else {
-//                     text.sections[7].value = String::default();
 //                 }
+
 //             }
 //         }
 //     }
 // }
+
+fn make_ui(commands: &mut Commands, asset_server: Res<AssetServer>) {
+    let font_size = 1.0;
+    let font = asset_server.load("RobotoMono-Regular.ttf");
+    let color = Color::YELLOW;
+    //     // Text with one section
+    commands.spawn_bundle(Text2dBundle {
+        text: Text {
+            sections: vec![
+                TextSection {
+                    value: "Controls:\n  -Resize the window to see auto-scaling.".to_string(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                TextSection {
+                    value: "\n  -Arrow keys to adjust number of tiles.\n  -Tab to change sprites."
+                        .to_string(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Tile count/ppu
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Window resolution
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Camera zoom
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Cursor world pos
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+                // Cursor tile pos
+                TextSection {
+                    value: String::default(),
+                    style: TextStyle {
+                        font: font.clone(),
+                        font_size,
+                        color,
+                    },
+                },
+            ],
+            ..default()
+        },
+        ..default()
+    });
+}
+
+fn update_text(
+    mut q_text: Query<&mut Text>,
+    windows: Res<Windows>,
+    q_camera: Query<(&Camera, &GlobalTransform, &TiledCamera)>,
+) {
+    let mut text = q_text.single_mut();
+
+    if let Some(window) = windows.get_primary() {
+        if let Some(pos) = window.cursor_position() {
+            for (cam, t, tcam) in q_camera.iter() {
+                if let Some(cursor_world) = tcam.screen_to_world(pos, &cam, &t) {
+                    let zoom = tcam.zoom();
+                    let tile_count = tcam.tile_count;
+                    let ppu = tcam.pixels_per_tile;
+                    let target_res = tcam.target_resolution();
+                    let cursor_x = format!("{:.2}", cursor_world.x);
+                    let cursor_y = format!("{:.2}", cursor_world.y);
+                    let window_res = Vec2::new(window.width(), window.height()).as_uvec2();
+
+                    text.sections[1].value = format!(
+                        "\nProjection tiles: {}. Pixels Per Tile: {}",
+                        tile_count, ppu
+                    );
+
+                    text.sections[2].value = format!(
+                        "\nTarget resolution: {}.\nWindow resolution: {}. ",
+                        target_res, window_res
+                    );
+
+                    text.sections[3].value = format!("\nProjection zoom: {}", zoom);
+
+                    text.sections[4].value =
+                        format!("\nCursor world pos: [{},{}]", cursor_x, cursor_y);
+
+                    text.sections[5].value =
+                        format!("\nCursor tile pos: {}", tcam.world_to_tile(t, cursor_world));
+                }
+            }
+        }
+    }
+}
 
 // fn cursor_system(
 //     input: Res<Input<MouseButton>>,
