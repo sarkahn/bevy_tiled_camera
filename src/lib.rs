@@ -431,9 +431,10 @@ fn on_window_resized(
             let window = windows.primary();
 
             let wres = UVec2::new(window.physical_width(), window.physical_height());
-            let (mut proj, mut cam, mut tiled_cam) = q_cam.single_mut();
+            if let Ok((mut proj, mut cam, mut tiled_cam)) = q_cam.get_single_mut() {
+                update_viewport(&mut tiled_cam, wres, &mut proj, &mut cam);
+            }
 
-            update_viewport(&mut tiled_cam, wres, &mut proj, &mut cam);
         }
     }
 }

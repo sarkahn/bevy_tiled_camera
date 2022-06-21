@@ -9,7 +9,7 @@ use bevy::{
     input::Input,
     math::{IVec2, Vec2},
     prelude::*,
-    render::texture::Image,
+    render::{texture::Image, view::RenderLayers},
     sprite::{Sprite, SpriteBundle},
     utils::HashMap,
     DefaultPlugins,
@@ -24,7 +24,7 @@ fn main() {
         .add_system(handle_input)
         .add_system(spawn_sprites)
         .add_plugins(DefaultPlugins)
-        .add_system(update_text)
+        //.add_system(update_text)
         .run();
 }
 
@@ -44,7 +44,7 @@ struct Cursor;
 struct GridEntities(HashMap<IVec2, Entity>);
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let tile_count = [2, 2];
+    let tile_count = [5, 5];
     let cam_bundle = TiledCameraBundle::new()
         .with_pixels_per_tile(8)
         .with_tile_count(tile_count);
@@ -160,104 +160,74 @@ fn spawn_sprites(
     }
 }
 
-// fn check_cursor(
-//     windows: Res<Windows>,
-//     q_cam: Query<(&Camera, &TiledCamera, &GlobalTransform, &Camera2d)>,
-//     //q_cam2: Query<(&Camera, &GlobalTransform)>
-// ) {
-//     for (cam, tcam, t, cam2d) in q_cam.iter() {
-//     //for (cam,t) in q_cam2.iter() {
-//         if let Some(window) = windows.get_primary() {
-//             if let Some(cursor_pos) = window.cursor_position() {
-
-//                 if let Some(world_pos) = tcam.screen_to_world(cursor_pos, &cam, &t) {
-
-//                     if let Some(w2s) = tcam.world_to_screen(world_pos, &cam, &t) {
-//                         //println!("Cursor pos {}. ScreenToWorld {}, WorldToScreen {}", cursor_pos, world_pos, w2s);
-//                     }
-
-//                 }
-
-//             }
-//         }
-//     }
-// }
 
 fn make_ui(commands: &mut Commands, asset_server: Res<AssetServer>) {
-    let font_size = 1.0;
+    let font_size = 26.0;
     let font = asset_server.load("RobotoMono-Regular.ttf");
     let color = Color::YELLOW;
-    //     // Text with one section
+    let style = || {
+        TextStyle { 
+            font: font.clone(), 
+            font_size, 
+            color,
+        }
+    };
+    let alignment = TextAlignment {
+        vertical: VerticalAlign::Top,
+        horizontal: HorizontalAlign::Left,
+    };
+
+    let layer = RenderLayers::layer(1);
+    commands.spawn_bundle(Camera2dBundle {
+        camera: Camera {
+            priority: -1,
+            ..default()
+        },
+        ..default()
+    }).insert(layer);
+    
     commands.spawn_bundle(Text2dBundle {
         text: Text {
             sections: vec![
                 TextSection {
                     value: "Controls:\n  -Resize the window to see auto-scaling.".to_string(),
-                    style: TextStyle {
-                        font: font.clone(),
-                        font_size,
-                        color,
-                    },
+                    style: style(),
                 },
                 TextSection {
                     value: "\n  -Arrow keys to adjust number of tiles.\n  -Tab to change sprites."
                         .to_string(),
-                    style: TextStyle {
-                        font: font.clone(),
-                        font_size,
-                        color,
-                    },
+                        style: style(),
                 },
                 // Tile count/ppu
                 TextSection {
                     value: String::default(),
-                    style: TextStyle {
-                        font: font.clone(),
-                        font_size,
-                        color,
-                    },
+                    style: style(),
                 },
                 // Window resolution
                 TextSection {
                     value: String::default(),
-                    style: TextStyle {
-                        font: font.clone(),
-                        font_size,
-                        color,
-                    },
+                    style: style(),
                 },
                 // Camera zoom
                 TextSection {
                     value: String::default(),
-                    style: TextStyle {
-                        font: font.clone(),
-                        font_size,
-                        color,
-                    },
+                    style: style(),
                 },
                 // Cursor world pos
                 TextSection {
                     value: String::default(),
-                    style: TextStyle {
-                        font: font.clone(),
-                        font_size,
-                        color,
-                    },
+                    style: style(),
                 },
                 // Cursor tile pos
                 TextSection {
                     value: String::default(),
-                    style: TextStyle {
-                        font: font.clone(),
-                        font_size,
-                        color,
-                    },
+                    style: style(),
                 },
             ],
-            ..default()
+            alignment,
         },
         ..default()
-    });
+    }).insert(layer);
 }
 
 fn update_text(
