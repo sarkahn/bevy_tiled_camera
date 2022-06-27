@@ -17,7 +17,7 @@ fn setup(
 ) {
     
     //commands.spawn_bundle(Camera2dBundle::default());
-    commands.spawn_bundle(TiledCameraBundle::unit_cam([15,15], 26));
+    commands.spawn_bundle(TiledCameraBundle::unit_cam([15,15], [26,26]));
 
     let font_size = 26.0;
     let font = asset_server.load("RobotoMono-Regular.ttf");

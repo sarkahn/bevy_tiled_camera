@@ -29,6 +29,7 @@ fn main() {
 }
 
 struct SpriteTextures {
+    pub tex_4x8: Handle<Image>,
     pub tex_8x8: Handle<Image>,
     pub tex_16x16: Handle<Image>,
     pub tex_32x32: Handle<Image>,
@@ -46,12 +47,13 @@ struct GridEntities(HashMap<IVec2, Entity>);
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tile_count = [5, 5];
     let cam_bundle = TiledCameraBundle::new()
-        .with_pixels_per_tile(8)
+        .with_pixels_per_tile([4,8])
         .with_tile_count(tile_count);
 
     commands.spawn_bundle(cam_bundle);
 
     let textures = SpriteTextures {
+        tex_4x8: asset_server.load("4x8.png"),
         tex_8x8: asset_server.load("8x8.png"),
         tex_16x16: asset_server.load("16x16.png"),
         tex_32x32: asset_server.load("32x32.png"),
@@ -63,19 +65,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let grid = GridEntities(HashMap::default());
     commands.insert_resource(grid);
 
-    // let col = Color::rgba(1.0, 1.0, 1.0, 0.35);
-    // let cursor = SpriteBundle {
-    //     sprite: Sprite {
-    //         color: col,
-    //         custom_size: Some(Vec2::ONE),
-    //         ..Default::default()
-    //     },
-    //     transform: Transform::from_xyz(0.0, 0.0, 2.0),
-    //     ..Default::default()
-    // };
-    //commands.spawn_bundle(cursor).insert(Cursor);
-
-    make_ui(&mut commands, asset_server);
+    //make_ui(&mut commands, asset_server);
 }
 
 fn handle_input(
@@ -102,11 +92,12 @@ fn handle_input(
     }
 
     if input.just_pressed(KeyCode::Tab) {
-        sprite_textures.current = (sprite_textures.current + 1) % 3;
+        sprite_textures.current = (sprite_textures.current + 1) % 4;
         q_cam.single_mut().pixels_per_tile = match sprite_textures.current {
-            1 => 16,
-            2 => 32,
-            _ => 8,
+            1 => [16,16].into(),
+            2 => [32,32].into(),
+            3 => [8,8].into(),
+            _ => [4,8].into(),
         };
     }
 
@@ -135,13 +126,14 @@ fn spawn_sprites(
 
         for p in cam.tile_center_iter(cam_transform) {
             let sprite = Sprite {
-                custom_size: cam.unit_size(),
+                custom_size: Some(Vec2::new(0.5, 1.0)),
                 ..Default::default()
             };
             let texture = match sprite_textures.current {
                 1 => sprite_textures.tex_16x16.clone(),
                 2 => sprite_textures.tex_32x32.clone(),
-                _ => sprite_textures.tex_8x8.clone(),
+                3 => sprite_textures.tex_8x8.clone(),
+                _ => sprite_textures.tex_4x8.clone(),
             };
             let bundle = SpriteBundle {
                 sprite,
@@ -157,78 +149,96 @@ fn spawn_sprites(
             //let tile_index = cam.world_to_tile(&cam_transform, p).unwrap();
             //grid.0.insert(tile_index, entity);
         }
+        commands.spawn_bundle(SpriteBundle {
+            sprite: Sprite {
+                color: Color::BLUE,
+                custom_size: Some(Vec2::ONE * 99999999.0),
+                ..default()
+            },
+            ..default()
+        });
+
+        commands.spawn_bundle(SpriteBundle {
+            sprite: Sprite {
+                color: Color::PINK,
+                custom_size: Some(Vec2::ONE),
+                ..default()
+            },
+            ..default()
+        });
     }
 }
 
 
-fn make_ui(commands: &mut Commands, asset_server: Res<AssetServer>) {
-    let font_size = 26.0;
-    let font = asset_server.load("RobotoMono-Regular.ttf");
-    let color = Color::YELLOW;
-    let style = || {
-        TextStyle { 
-            font: font.clone(), 
-            font_size, 
-            color,
-        }
-    };
-    let alignment = TextAlignment {
-        vertical: VerticalAlign::Top,
-        horizontal: HorizontalAlign::Left,
-    };
+// Need #4007 (https://github.com/bevyengine/bevy/pull/4007) for this to work
+// fn make_ui(commands: &mut Commands, asset_server: Res<AssetServer>) {
+//     let font_size = 26.0;
+//     let font = asset_server.load("RobotoMono-Regular.ttf");
+//     let color = Color::YELLOW;
+//     let style = || {
+//         TextStyle { 
+//             font: font.clone(), 
+//             font_size, 
+//             color,
+//         }
+//     };
+//     let alignment = TextAlignment {
+//         vertical: VerticalAlign::Top,
+//         horizontal: HorizontalAlign::Left,
+//     };
 
-    let layer = RenderLayers::layer(1);
-    commands.spawn_bundle(Camera2dBundle {
-        camera: Camera {
-            priority: -1,
-            ..default()
-        },
-        ..default()
-    }).insert(layer);
+//     let layer = RenderLayers::layer(1);
+//     commands.spawn_bundle(Camera2dBundle {
+//         camera: Camera {
+//             priority: -1,
+//             ..default()
+//         },
+//         ..default()
+//     }).insert(layer);
     
-    commands.spawn_bundle(Text2dBundle {
-        text: Text {
-            sections: vec![
-                TextSection {
-                    value: "Controls:\n  -Resize the window to see auto-scaling.".to_string(),
-                    style: style(),
-                },
-                TextSection {
-                    value: "\n  -Arrow keys to adjust number of tiles.\n  -Tab to change sprites."
-                        .to_string(),
-                        style: style(),
-                },
-                // Tile count/ppu
-                TextSection {
-                    value: String::default(),
-                    style: style(),
-                },
-                // Window resolution
-                TextSection {
-                    value: String::default(),
-                    style: style(),
-                },
-                // Camera zoom
-                TextSection {
-                    value: String::default(),
-                    style: style(),
-                },
-                // Cursor world pos
-                TextSection {
-                    value: String::default(),
-                    style: style(),
-                },
-                // Cursor tile pos
-                TextSection {
-                    value: String::default(),
-                    style: style(),
-                },
-            ],
-            alignment,
-        },
-        ..default()
-    }).insert(layer);
-}
+//     commands.spawn_bundle(Text2dBundle {
+//         text: Text {
+//             sections: vec![
+//                 TextSection {
+//                     value: "Controls:\n  -Resize the window to see auto-scaling.".to_string(),
+//                     style: style(),
+//                 },
+//                 TextSection {
+//                     value: "\n  -Arrow keys to adjust number of tiles.\n  -Tab to change sprites."
+//                         .to_string(),
+//                         style: style(),
+//                 },
+//                 // Tile count/ppu
+//                 TextSection {
+//                     value: String::default(),
+//                     style: style(),
+//                 },
+//                 // Window resolution
+//                 TextSection {
+//                     value: String::default(),
+//                     style: style(),
+//                 },
+//                 // Camera zoom
+//                 TextSection {
+//                     value: String::default(),
+//                     style: style(),
+//                 },
+//                 // Cursor world pos
+//                 TextSection {
+//                     value: String::default(),
+//                     style: style(),
+//                 },
+//                 // Cursor tile pos
+//                 TextSection {
+//                     value: String::default(),
+//                     style: style(),
+//                 },
+//             ],
+//             alignment,
+//         },
+//         ..default()
+//     }).insert(layer);
+// }
 
 fn update_text(
     mut q_text: Query<&mut Text>,
