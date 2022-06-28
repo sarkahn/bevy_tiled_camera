@@ -226,6 +226,7 @@ dependencies = [
  "bevy_render",
  "bevy_transform",
  "bevy_utils",
+ "radsort",
  "serde",
 ]
 
@@ -388,6 +389,7 @@ dependencies = [
  "bevy_window",
  "bitflags",
  "bytemuck",
+ "radsort",
 ]
 
 [[package]]
@@ -442,7 +444,6 @@ dependencies = [
  "bitflags",
  "codespan-reporting",
  "copyless",
- "crossbeam-channel",
  "downcast-rs",
  "encase",
  "futures-lite",
@@ -456,6 +457,7 @@ dependencies = [
  "serde",
  "smallvec",
  "thiserror",
+ "thread_local",
  "wgpu",
 ]
 
@@ -1717,6 +1719,12 @@ checksum = "3bcdf212e9776fbcb2d23ab029360416bb1706b1aea2d1a5ba002727cbcab804"
 dependencies = [
  "proc-macro2",
 ]
+
+[[package]]
+name = "radsort"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17fd96390ed3feda12e1dfe2645ed587e0bea749e319333f104a33ff62f77a0b"
 
 [[package]]
 name = "rand"

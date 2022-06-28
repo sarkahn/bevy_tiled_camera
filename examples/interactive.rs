@@ -45,7 +45,7 @@ struct Cursor;
 struct GridEntities(HashMap<IVec2, Entity>);
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let tile_count = [5, 5];
+    let tile_count = [3, 3];
     let cam_bundle = TiledCameraBundle::new()
         .with_pixels_per_tile([4,8])
         .with_tile_count(tile_count);
@@ -126,7 +126,7 @@ fn spawn_sprites(
 
         for p in cam.tile_center_iter(cam_transform) {
             let sprite = Sprite {
-                custom_size: Some(Vec2::new(0.5, 1.0)),
+                custom_size: cam.unit_size(),
                 ..Default::default()
             };
             let texture = match sprite_textures.current {
@@ -141,27 +141,15 @@ fn spawn_sprites(
                 transform: Transform::from_translation(p.extend(0.0)),
                 ..Default::default()
             };
-            //let entity =
             commands.spawn_bundle(bundle).insert(GridSprite)
-            //.id()
             ;
-
-            //let tile_index = cam.world_to_tile(&cam_transform, p).unwrap();
-            //grid.0.insert(tile_index, entity);
         }
-        commands.spawn_bundle(SpriteBundle {
-            sprite: Sprite {
-                color: Color::BLUE,
-                custom_size: Some(Vec2::ONE * 99999999.0),
-                ..default()
-            },
-            ..default()
-        });
 
+        // Blue Background to show viewport border
         commands.spawn_bundle(SpriteBundle {
             sprite: Sprite {
-                color: Color::PINK,
-                custom_size: Some(Vec2::ONE),
+                color: Color::rgba(0.0, 0.0, 1.0, 0.015),
+                custom_size: Some(Vec2::ONE * 99999999.0),
                 ..default()
             },
             ..default()
@@ -320,4 +308,4 @@ fn update_text(
 
 //     let (_, mut v) = q_cursor.single_mut();
 //     v.is_visible = false;
-// }
+// }v

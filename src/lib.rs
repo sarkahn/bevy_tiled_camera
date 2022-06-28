@@ -323,7 +323,7 @@ impl TiledCamera {
     /// of the sprite's texture.
     pub fn unit_size(&self) -> Option<Vec2> {
         match self.grid.world_space {
-            WorldSpace::Units => Some(Vec2::ONE),
+            WorldSpace::Units => Some(self.grid.tile_size_world()),
             WorldSpace::Pixels => None,
         }
     }
@@ -361,7 +361,8 @@ impl TiledCamera {
         // Compute the cursor position at the near plane. The bevy camera looks at -Z.
         let ndc_near = world_to_ndc.transform_point3(-Vec3::Z * camera_near).z;
         let cursor_pos_near = ndc_to_world.transform_point3(cursor_ndc.extend(ndc_near));
-        let cursor_pos_near = cursor_pos_near.truncate() * self.grid.world_space_scale();
+        let tile_size = self.grid.tile_size_world();
+        let cursor_pos_near = cursor_pos_near.truncate() * tile_size;
         Some(cursor_pos_near)
     }
 
@@ -456,7 +457,7 @@ fn update_viewport(
 ) {
     let tres = tiled_cam.target_resolution().as_vec2();
     let wres = wres.as_vec2();
-    let zoom = (wres / tres).min_element().max(1.0);
+    let zoom = (wres / tres).floor().min_element().max(1.0);
 
     // The 'size' of the orthographic projection.
     // 
@@ -481,28 +482,28 @@ fn update_viewport(
         (wres / 2.0) - (vp_size / 2.0)
     }.floor();
 
-    // cam.viewport = Some(Viewport {
-    //     physical_position: vp_pos.as_uvec2(),
-    //     physical_size: vp_size.as_uvec2(),
-    //     ..default()
-    // });
-
-    
     cam.viewport = Some(Viewport {
-       // physical_position: vp_pos.as_uvec2(),
+        physical_position: vp_pos.as_uvec2(),
         physical_size: vp_size.as_uvec2(),
         ..default()
     });
 
-    println!("Tile count {}, Window res {}, Target resolution {}, zoom {}, PPU {}. VP pos {}. VP size {}", 
-        tiled_cam.tile_count,
-        wres,
-        tres, 
-        zoom,
-        tiled_cam.pixels_per_tile,
-        vp_pos,
-        vp_size
-    );
+    
+    cam.viewport = Some(Viewport {
+        physical_position: vp_pos.as_uvec2(),
+        physical_size: vp_size.as_uvec2(),
+        ..default()
+    });
+
+    // println!("Tile count {}, Window res {}, Target resolution {}, zoom {}, PPU {}. VP pos {}. VP size {}", 
+    //     tiled_cam.tile_count,
+    //     wres,
+    //     tres, 
+    //     zoom,
+    //     tiled_cam.pixels_per_tile,
+    //     vp_pos,
+    //     vp_size
+    // );
 
 
     // Camera values may have been changed manually - update grid values.
