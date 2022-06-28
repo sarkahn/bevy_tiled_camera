@@ -9,7 +9,7 @@ use bevy::{
     input::Input,
     math::{IVec2, Vec2},
     prelude::*,
-    render::{texture::Image, view::RenderLayers},
+    render::texture::Image,
     sprite::{Sprite, SpriteBundle},
     utils::HashMap,
     DefaultPlugins,
@@ -47,7 +47,7 @@ struct GridEntities(HashMap<IVec2, Entity>);
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let tile_count = [3, 3];
     let cam_bundle = TiledCameraBundle::new()
-        .with_pixels_per_tile([4,8])
+        .with_pixels_per_tile([4, 8])
         .with_tile_count(tile_count);
 
     commands.spawn_bundle(cam_bundle);
@@ -94,10 +94,10 @@ fn handle_input(
     if input.just_pressed(KeyCode::Tab) {
         sprite_textures.current = (sprite_textures.current + 1) % 4;
         q_cam.single_mut().pixels_per_tile = match sprite_textures.current {
-            1 => [16,16].into(),
-            2 => [32,32].into(),
-            3 => [8,8].into(),
-            _ => [4,8].into(),
+            1 => [16, 16].into(),
+            2 => [32, 32].into(),
+            3 => [8, 8].into(),
+            _ => [4, 8].into(),
         };
     }
 
@@ -141,8 +141,7 @@ fn spawn_sprites(
                 transform: Transform::from_translation(p.extend(0.0)),
                 ..Default::default()
             };
-            commands.spawn_bundle(bundle).insert(GridSprite)
-            ;
+            commands.spawn_bundle(bundle).insert(GridSprite);
         }
 
         // Blue Background to show viewport border
@@ -157,16 +156,17 @@ fn spawn_sprites(
     }
 }
 
-
-// Need #4007 (https://github.com/bevyengine/bevy/pull/4007) for this to work
+// Need #4007 or #5114 for this to work
+//  - https://github.com/bevyengine/bevy/pull/4007
+//  - https://github.com/bevyengine/bevy/pull/5114
 // fn make_ui(commands: &mut Commands, asset_server: Res<AssetServer>) {
 //     let font_size = 26.0;
 //     let font = asset_server.load("RobotoMono-Regular.ttf");
 //     let color = Color::YELLOW;
 //     let style = || {
-//         TextStyle { 
-//             font: font.clone(), 
-//             font_size, 
+//         TextStyle {
+//             font: font.clone(),
+//             font_size,
 //             color,
 //         }
 //     };
@@ -183,7 +183,7 @@ fn spawn_sprites(
 //         },
 //         ..default()
 //     }).insert(layer);
-    
+
 //     commands.spawn_bundle(Text2dBundle {
 //         text: Text {
 //             sections: vec![
@@ -228,47 +228,47 @@ fn spawn_sprites(
 //     }).insert(layer);
 // }
 
-fn update_text(
-    mut q_text: Query<&mut Text>,
-    windows: Res<Windows>,
-    q_camera: Query<(&Camera, &GlobalTransform, &TiledCamera)>,
-) {
-    let mut text = q_text.single_mut();
+// fn update_text(
+//     mut q_text: Query<&mut Text>,
+//     windows: Res<Windows>,
+//     q_camera: Query<(&Camera, &GlobalTransform, &TiledCamera)>,
+// ) {
+//     let mut text = q_text.single_mut();
 
-    if let Some(window) = windows.get_primary() {
-        if let Some(pos) = window.cursor_position() {
-            for (cam, t, tcam) in q_camera.iter() {
-                if let Some(cursor_world) = tcam.screen_to_world(pos, &cam, &t) {
-                    let zoom = tcam.zoom();
-                    let tile_count = tcam.tile_count;
-                    let ppu = tcam.pixels_per_tile;
-                    let target_res = tcam.target_resolution();
-                    let cursor_x = format!("{:.2}", cursor_world.x);
-                    let cursor_y = format!("{:.2}", cursor_world.y);
-                    let window_res = Vec2::new(window.width(), window.height()).as_uvec2();
+//     if let Some(window) = windows.get_primary() {
+//         if let Some(pos) = window.cursor_position() {
+//             for (cam, t, tcam) in q_camera.iter() {
+//                 if let Some(cursor_world) = tcam.screen_to_world(pos, &cam, &t) {
+//                     let zoom = tcam.zoom();
+//                     let tile_count = tcam.tile_count;
+//                     let ppu = tcam.pixels_per_tile;
+//                     let target_res = tcam.target_resolution();
+//                     let cursor_x = format!("{:.2}", cursor_world.x);
+//                     let cursor_y = format!("{:.2}", cursor_world.y);
+//                     let window_res = Vec2::new(window.width(), window.height()).as_uvec2();
 
-                    text.sections[1].value = format!(
-                        "\nProjection tiles: {}. Pixels Per Tile: {}",
-                        tile_count, ppu
-                    );
+//                     text.sections[1].value = format!(
+//                         "\nProjection tiles: {}. Pixels Per Tile: {}",
+//                         tile_count, ppu
+//                     );
 
-                    text.sections[2].value = format!(
-                        "\nTarget resolution: {}.\nWindow resolution: {}. ",
-                        target_res, window_res
-                    );
+//                     text.sections[2].value = format!(
+//                         "\nTarget resolution: {}.\nWindow resolution: {}. ",
+//                         target_res, window_res
+//                     );
 
-                    text.sections[3].value = format!("\nProjection zoom: {}", zoom);
+//                     text.sections[3].value = format!("\nProjection zoom: {}", zoom);
 
-                    text.sections[4].value =
-                        format!("\nCursor world pos: [{},{}]", cursor_x, cursor_y);
+//                     text.sections[4].value =
+//                         format!("\nCursor world pos: [{},{}]", cursor_x, cursor_y);
 
-                    text.sections[5].value =
-                        format!("\nCursor tile pos: {}", tcam.world_to_tile(t, cursor_world));
-                }
-            }
-        }
-    }
-}
+//                     text.sections[5].value =
+//                         format!("\nCursor tile pos: {}", tcam.world_to_tile(t, cursor_world));
+//                 }
+//             }
+//         }
+//     }
+// }
 
 // fn cursor_system(
 //     input: Res<Input<MouseButton>>,

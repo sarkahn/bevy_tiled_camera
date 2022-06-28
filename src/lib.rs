@@ -4,13 +4,17 @@
 //!
 //! # `Bevy Tiled Camera`
 //!
-//! A camera for properly displaying low resolution pixel perfect 2D games in bevy.
+//! A camera for properly displaying low resolution pixel perfect 2D games in
+//! bevy. It works by adjusting the viewport to match a target resolution, which
+//! is defined by a tile count and the number of pixels per tile.
 //!
-//! This camera will scale up the viewport as much as possible while maintaing your target
-//! resolution and avoiding pixel artifacts.
+//! The camera will scale the viewport as much as possible while maintaining
+//! your target resolution and avoiding pixel artifacts.
 //!
-//! **Note**: Due to how resources are initialized, `TiledCameraPlugin` *must* be added
-//! before `DefaultPlugins`. This ensures the default image filtering is set properly.
+//! **Note**: Due to how resources are initialized, `TiledCameraPlugin` *must*
+//! be added before `DefaultPlugins` during app initialization. This ensures the
+//! default image filtering is set properly.
+//! https://github.com/bevyengine/bevy/issues/1255
 //!
 //! ## Example
 //! ```dont_run
@@ -18,12 +22,16 @@
 //! use bevy::prelude::*;
 //!
 //! fn setup(mut commands:Commands) {
-//!   // Sets up a camera to display 80 x 25 tiles. The viewport will be scaled up
-//!   // as much as possible to fit the window size and maintain the appearance of
-//!   // 8 pixels per tile.
-//!   let camera_bundle = TiledCameraBundle::new()
-//!       .with_pixels_per_tile(8)
-//!       .with_tile_count([80,25]);
+//!   // Sets up a camera to display 80 x 35 tiles. The viewport will be scaled
+//!   // up as much as possible to fit the window size and maintain the
+//!   // appearance of 8 pixels per tile.
+//!   let camera_bundle = TiledCameraBundle::unit_cam()
+//!       .with_pixels_per_tile([8,8])
+//!       .with_tile_count([80,35]);
+//!   // or
+//!   let camera_bundle = TiledCameraBundle::unit_cam()
+//!       .with_pixels_per_tile([8,8])
+//!       .with_target_resolution([640,280]);
 //!
 //!   commands.spawn_bundle(camera_bundle);
 //! }
@@ -38,41 +46,46 @@
 //! ```
 //!
 //! ## Rendering Pixel Art
-//! There's a unfortunately few important things to consider when displaying low resolution pixel art. Depending on how
-//! your camera is set up and what your image filtering is, you might end up with extreme rendering artifacts. Your beautiful
-//! pixels may deform in shape when moving, or you might see blinking lines between your tiles depending on the position
-//! of your camera.
+//! There's few important things to consider when displaying low resolution
+//! pixel art. Depending on how your camera is set up and what your image
+//! filtering is, you might end up with extreme rendering artifacts. Your
+//! pixels may deform in shape when moving, or you might see blinking lines
+//! between your tiles depending on the position and 'orthographic size' of your
+//! camera.
 //!
-//! This camera attempts to alleviate some of that, but you still have some decisions to make when deciding how to render
-//! your game. Namely, you must decide how your world space will be defined, as it informs how all your sprites must
-//! be sized and positioned in the game:
+//! This camera attempts to alleviate some of that, but you must decide how your
+//! world space will be defined, as it informs how all your sprites must
+//! be sized and positioned in the game. Regardless of which you use, the
+//! camera will adjust the projection and viewport to match your target
+//! resolution.
 //!
 //! ### `WorldSpace::Units`
-//! With this method you decide on a set number of "pixels per unit". This defines how large a single
-//! world unit is in pixels, which informs how the rest of the art in your game is displayed. This complicates
-//! how your camera needs to be set up, as the viewport/camera projection must be adjusted precisely to properly display
-//! your art.
+//! With this method you decide on a set number of "pixels per unit". This
+//! defines how large a single world unit (or "tile") is in pixels.
 //!
-//! The upside is you can define all transforms and movement in your game in terms of world units,
-//! the same as you would in 3d.
+//! When your world space is defined by world units you can define your
+//! transforms and movement in your game in terms of world units, the same as
+//! you would in 3d.
 //!
 //! This is the default for TiledCamera.
 //!
 //! ### `WorldSpace::Pixels`
-//! This makes it easy to properly display sprites of different sizes, but complicates in game positioning
-//! and movement. Since your space is defined by pixels, all motion and positioning are also defined by pixels,
-//! which can be counterintuitive and often requires scaling your transforms.
+//! One pixel == one world unit. If your world space is defined by pixels, all
+//! motion and positioning will also be defined in terms of pixels. The "pixels
+//! per tile" setting of the camera determines how many world units are
+//! considered a "tile" from the camera's perspective.
 //!
 //! This is the default for bevy's built in orthographic camera.
 //!
 //! ## Customization
 //!
-//! BevyTiledCamera supports either world space, but defaults to `WorldSpace::Units`. You can change this during
-//! construction:
+//! BevyTiledCamera supports either world space, but defaults to
+//! `WorldSpace::Units`. You can change this during construction:
 //!
 //! ```rust
 //! use bevy_tiled_camera::*;
-//! let cam = TiledCameraBundle::pixel_cam([5,5], 8);
+//! let cam = TiledCameraBundle::pixel_cam([5,5], [8,8]);
+//! let cam = TiledCameraBundle::unit_cam([5,5], [8,8]);
 //! // Or
 //! let cam = TiledCameraBundle::new()
 //!     .with_world_space(WorldSpace::Pixels);
@@ -105,8 +118,7 @@ impl Plugin for TiledCameraPlugin {
             default_sampler: ImageSampler::nearest_descriptor(),
         })
         .add_system(on_window_resized)
-        .add_system(on_camera_changed)
-        ;
+        .add_system(on_camera_changed);
     }
 }
 
@@ -118,7 +130,7 @@ impl Plugin for TiledCameraPlugin {
 /// use bevy::prelude::Commands;
 /// fn setup(mut commands:Commands) {
 ///   let camera_bundle = TiledCameraBundle::new()
-///       .with_pixels_per_tile(8)
+///       .with_pixels_per_tile([8,8])
 ///       .with_tile_count([80,45]);
 ///
 ///   commands.spawn_bundle(camera_bundle);
@@ -198,8 +210,8 @@ impl TiledCameraBundle {
 
 /// A camera with a virtual grid for displaying low resolution pixel art.
 ///
-/// Contains various functions for translating points between world space and the camera's
-///"virtual grid tiles.
+/// Contains various functions for translating points between world space and
+/// the camera's virtual grid tiles.
 #[derive(Component)]
 pub struct TiledCamera {
     /// Pixels per tile determines the size of your tiles/art, depending on
@@ -247,13 +259,15 @@ impl TiledCamera {
         self.pixels_per_tile * self.tile_count
     }
 
-    /// Returns an iterator that yields the center of the camera's virtual grid tiles in world space.
+    /// Returns an iterator that yields the center of the camera's virtual grid
+    /// tiles in world space.
     pub fn tile_center_iter(&self, transform: &GlobalTransform) -> impl Iterator<Item = Vec2> {
         let xy = transform.translation.truncate();
         self.grid.tile_center_iter().map(move |p| p + xy)
     }
 
-    /// Returns an iterator that yields the position of the camera's virtual grid tiles in world space.
+    /// Returns an iterator that yields the position of the camera's virtual
+    /// grid tiles in world space.
     ///
     /// A tile's "position" refers to the bottom left corner of the tile.
     pub fn tile_pos_iter(&self, transform: &GlobalTransform) -> impl Iterator<Item = Vec2> {
@@ -318,7 +332,8 @@ impl TiledCamera {
     /// Get unit size or [`None`], depending on the camera's [`WorldSpace`].
     ///
     /// This can be used for sizing spawned sprites. If the camera's [`WorldSpace`]
-    /// is [`WorldSpace::Units`] then a unit sized sprite should be one world unit.
+    /// is [`WorldSpace::Units`] then a unit sized sprite should be the size of
+    /// a tile.
     /// Otherwise it should use the default sprite size, which is the pixel dimensions
     /// of the sprite's texture.
     pub fn unit_size(&self) -> Option<Vec2> {
@@ -402,8 +417,8 @@ impl TiledCamera {
 
 impl Default for TiledCamera {
     fn default() -> Self {
-        let pixels_per_tile = UVec2::new(8,8);
-        let tile_count = UVec2::new(80, 45);
+        let pixels_per_tile = UVec2::new(8, 8);
+        let tile_count = UVec2::new(80, 35);
         Self {
             pixels_per_tile,
             tile_count,
@@ -420,8 +435,9 @@ fn on_window_resized(
     mut resize_events: EventReader<WindowResized>,
     mut q_cam: Query<(&mut OrthographicProjection, &mut Camera, &mut TiledCamera)>,
 ) {
-    // We need to dynamically resize the camera's viewports whenever the window size changes
-    // A resize_event is sent when the window is first created, allowing us to reuse this system for initial setup.
+    // We need to dynamically resize the camera's viewports whenever the window
+    // size changes. A resize_event is sent when the window is first created,
+    // allowing us to reuse this system for initial setup.
     for resize_event in resize_events.iter() {
         if resize_event.id == WindowId::primary() {
             let window = windows.primary();
@@ -430,7 +446,6 @@ fn on_window_resized(
             if let Ok((mut proj, mut cam, mut tiled_cam)) = q_cam.get_single_mut() {
                 update_viewport(&mut tiled_cam, wres, &mut proj, &mut cam);
             }
-
         }
     }
 }
@@ -460,27 +475,23 @@ fn update_viewport(
     let zoom = (wres / tres).floor().min_element().max(1.0);
 
     // The 'size' of the orthographic projection.
-    // 
+    //
     // For a `FixedVertical` projection this refers to the size of the
     // projection in vertical units.
     let ortho_size = match tiled_cam.world_space() {
         WorldSpace::Units => tiled_cam.tile_count.y as f32,
-        WorldSpace::Pixels => tiled_cam.pixels_per_tile.y as f32 * zoom,
+        WorldSpace::Pixels => tiled_cam.tile_count.y as f32 * tiled_cam.pixels_per_tile.y as f32,
     };
 
     proj.scaling_mode = ScalingMode::FixedVertical(ortho_size);
-    //let scale = tiled_cam.tile_count.y as f32 * tiled_cam.grid.world_space_scale().y;
-    // if scale.x > scale.y {
-    //     proj.scaling_mode = ScalingMode::FixedHorizontal(scale.x);
-    // } else {
-    //     proj.scaling_mode = ScalingMode::FixedVertical(scale.y);
-    // }
+
     let vp_size = tres * zoom;
     let vp_pos = if wres.cmple(tres).any() {
         Vec2::ZERO
     } else {
         (wres / 2.0) - (vp_size / 2.0)
-    }.floor();
+    }
+    .floor();
 
     cam.viewport = Some(Viewport {
         physical_position: vp_pos.as_uvec2(),
@@ -488,23 +499,20 @@ fn update_viewport(
         ..default()
     });
 
-    
-    cam.viewport = Some(Viewport {
-        physical_position: vp_pos.as_uvec2(),
-        physical_size: vp_size.as_uvec2(),
-        ..default()
-    });
-
-    // println!("Tile count {}, Window res {}, Target resolution {}, zoom {}, PPU {}. VP pos {}. VP size {}", 
-    //     tiled_cam.tile_count,
-    //     wres,
-    //     tres, 
-    //     zoom,
-    //     tiled_cam.pixels_per_tile,
-    //     vp_pos,
-    //     vp_size
-    // );
-
+    println!(
+        "
+    Ortho size {},
+    Tile count {}, Window res {}, Target resolution {}, 
+    zoom {}, PPU {}. VP pos {}. VP size {}",
+        ortho_size,
+        tiled_cam.tile_count,
+        wres,
+        tres,
+        zoom,
+        tiled_cam.pixels_per_tile,
+        vp_pos,
+        vp_size
+    );
 
     // Camera values may have been changed manually - update grid values.
     tiled_cam.grid.tile_count = tiled_cam.tile_count;
@@ -521,7 +529,7 @@ mod tests {
     fn unit_cam(pos: impl Point2d, tile_count: impl Size2d) -> (GlobalTransform, TiledCamera) {
         (
             GlobalTransform::from_translation(pos.as_vec2().extend(0.0)),
-            TiledCamera::unit_cam(tile_count, [8,8]),
+            TiledCamera::unit_cam(tile_count, [8, 8]),
         )
     }
 
@@ -531,7 +539,7 @@ mod tests {
     ) -> (GlobalTransform, TiledCamera) {
         (
             GlobalTransform::from_translation(pos.as_vec2().extend(0.0)),
-            TiledCamera::pixel_cam(tile_count, [8,8]),
+            TiledCamera::pixel_cam(tile_count, [8, 8]),
         )
     }
 
@@ -571,10 +579,10 @@ mod tests {
 
     #[test]
     fn new() {
-        let cam = TiledCameraBundle::pixel_cam([5, 5], [8,8]).tiled_camera;
+        let cam = TiledCameraBundle::pixel_cam([5, 5], [8, 8]).tiled_camera;
         assert_eq!(cam.world_space(), WorldSpace::Pixels);
 
-        let cam = TiledCameraBundle::unit_cam([5, 5], [8,8]).tiled_camera;
+        let cam = TiledCameraBundle::unit_cam([5, 5], [8, 8]).tiled_camera;
         assert_eq!(cam.world_space(), WorldSpace::Units);
     }
 }

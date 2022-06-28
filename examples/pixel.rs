@@ -10,7 +10,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands, server: Res<AssetServer>) {
-    commands.spawn_bundle(TiledCameraBundle::pixel_cam([10, 10], [8,8]));
+    commands.spawn_bundle(TiledCameraBundle::pixel_cam([10, 10], [8, 8]));
 
     commands.spawn_bundle(SpriteBundle {
         texture: server.load("8x8.png"),
