@@ -499,20 +499,20 @@ fn update_viewport(
         ..default()
     });
 
-    println!(
-        "
-    Ortho size {},
-    Tile count {}, Window res {}, Target resolution {}, 
-    zoom {}, PPU {}. VP pos {}. VP size {}",
-        ortho_size,
-        tiled_cam.tile_count,
-        wres,
-        tres,
-        zoom,
-        tiled_cam.pixels_per_tile,
-        vp_pos,
-        vp_size
-    );
+    // println!(
+    //     "
+    // Ortho size {},
+    // Tile count {}, Window res {}, Target resolution {}, 
+    // zoom {}, PPU {}. VP pos {}. VP size {}",
+    //     ortho_size,
+    //     tiled_cam.tile_count,
+    //     wres,
+    //     tres,
+    //     zoom,
+    //     tiled_cam.pixels_per_tile,
+    //     vp_pos,
+    //     vp_size
+    // );
 
     // Camera values may have been changed manually - update grid values.
     tiled_cam.grid.tile_count = tiled_cam.tile_count;
