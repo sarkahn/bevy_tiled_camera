@@ -1,16 +1,24 @@
-use bevy::{prelude::*, sprite::Anchor};
+use bevy::{
+    prelude::*,
+    render::texture::{ImageSampler, ImageSettings},
+    sprite::Anchor,
+};
 use bevy_tiled_camera::*;
 
 fn main() {
     App::new()
         .add_plugin(TiledCameraPlugin)
+        .insert_resource(ImageSettings {
+            default_sampler: ImageSampler::nearest_descriptor(),
+        })
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .run()
 }
 
 fn setup(mut commands: Commands, server: Res<AssetServer>) {
-    commands.spawn_bundle(TiledCameraBundle::pixel_cam([10, 10], [8, 8]));
+    // Defaults to 8x8 pixels per tile
+    commands.spawn_bundle(TiledCameraBundle::pixel_cam([10, 10]));
 
     commands.spawn_bundle(SpriteBundle {
         texture: server.load("8x8.png"),

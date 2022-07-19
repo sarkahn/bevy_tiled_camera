@@ -15,4 +15,4 @@ sark_grids = {path="../sark_grids_rs", version="0.5.0"}
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
-bevy = {path="../bevy", version="0.8.0-dev", default-features = false, features = ["png", "bevy_winit", "bevy_render", "bevy_sprite", "bevy_core_pipeline", "bevy_text"]}
+bevy = {path="../bevy", version="0.8.0-dev", default-features = false, features = ["png", "bevy_render", "bevy_core_pipeline", "bevy_winit",  "bevy_sprite", "bevy_text"]}
