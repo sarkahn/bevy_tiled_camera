@@ -192,6 +192,9 @@ pub struct TiledCamera {
     vp_size: UVec2,
     /// Viewport position from the last viewport update.
     vp_pos: UVec2,
+    /// Window resolution from the last viewport update.
+    win_size: UVec2,
+    ortho_size: f32,
 }
 
 impl TiledCamera {
@@ -222,6 +225,26 @@ impl TiledCamera {
     /// Retrieve the target resolution (in pixels) of the camera.
     pub fn target_resolution(&self) -> UVec2 {
         self.pixels_per_tile * self.tile_count
+    }
+
+    // Viewport size from the last viewport update
+    pub fn viewport_size(&self) -> UVec2 {
+        self.vp_size
+    }
+
+    // Viewport position from the last viewport update
+    pub fn viewport_pos(&self) -> UVec2 {
+        self.vp_pos
+    }
+
+    /// Window resolution from the last viewport update
+    pub fn window_resolution(&self) -> UVec2 {
+        self.win_size
+    }
+
+    /// The orthographic size of the camera from the last viewport update
+    pub fn orthographic_size(&self) -> f32 {
+        self.ortho_size
     }
 
     /// Returns an iterator that yields the center of the camera's virtual grid
@@ -399,6 +422,8 @@ impl Default for TiledCamera {
             zoom: 1,
             vp_size: UVec2::ONE,
             vp_pos: UVec2::ZERO,
+            win_size: UVec2::ONE,
+            ortho_size: 0.0,
         }
     }
 }
@@ -479,6 +504,8 @@ fn update_viewport(
     tiled_cam.zoom = zoom as u32;
     tiled_cam.vp_pos = vp_pos.as_uvec2();
     tiled_cam.vp_size = vp_size.as_uvec2();
+    tiled_cam.win_size = wres.as_uvec2();
+    tiled_cam.ortho_size = ortho_size;
 }
 
 #[cfg(test)]
