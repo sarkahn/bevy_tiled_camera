@@ -7,12 +7,17 @@ homepage = "https://github.com/sarkahn/bevy_tiled_camera"
 keywords = ["bevy", "2d", "camera", "pixels"]
 license = "MIT"
 readme = "README.md"
-version = "0.4.0"
+version = "0.4.1"
+
+[features]
+dev = [
+    "bevy/dynamic",
+]
 
 [dependencies]
-bevy = {path="../bevy", version="0.8", default_features=false, features=["bevy_render", "bevy_core_pipeline"]}
+bevy = {path="../bevy", version="0.8.1", default_features=false, features=["bevy_render", "bevy_core_pipeline"]}
 sark_grids = {path="../sark_grids_rs", version="0.5.0"}
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
-bevy = {path="../bevy", version="0.8", default-features = false, features = ["png", "bevy_core_pipeline", "bevy_asset", "bevy_render", "bevy_winit",  "bevy_sprite"]}
+bevy = {path="../bevy", version="0.8.1", default-features = false, features = ["png", "bevy_core_pipeline", "bevy_asset", "bevy_render", "bevy_winit",  "bevy_sprite"]}
