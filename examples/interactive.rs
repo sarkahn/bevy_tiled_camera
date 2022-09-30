@@ -31,6 +31,7 @@ fn main() {
         .run();
 }
 
+#[derive(Resource)]
 struct SpriteTextures {
     pub tex_4x8: Handle<Image>,
     pub tex_8x8: Handle<Image>,
@@ -45,6 +46,7 @@ struct GridSprite;
 #[derive(Component)]
 struct Cursor;
 
+#[derive(Resource)]
 struct GridEntities(HashMap<IVec2, Entity>);
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -53,7 +55,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .with_pixels_per_tile([4, 8])
         .with_tile_count(tile_count);
 
-    commands.spawn_bundle(cam_bundle);
+    commands.spawn(cam_bundle);
 
     let textures = SpriteTextures {
         tex_4x8: asset_server.load("4x8.png"),
@@ -144,11 +146,11 @@ fn spawn_sprites(
                 transform: Transform::from_translation(p.extend(0.0)),
                 ..Default::default()
             };
-            commands.spawn_bundle(bundle).insert(GridSprite);
+            commands.spawn((bundle, GridSprite));
         }
 
         // Blue Background to show viewport border
-        commands.spawn_bundle(SpriteBundle {
+        commands.spawn(SpriteBundle {
             sprite: Sprite {
                 color: Color::rgba(0.0, 0.0, 1.0, 0.015),
                 custom_size: Some(Vec2::ONE * 99999999.0),

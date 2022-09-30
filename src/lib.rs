@@ -10,7 +10,7 @@
 //! ![](images/demo.gif)
 //!
 //! ## Example
-//! ```no_run
+//! ```rust no_run
 //! use bevy_tiled_camera::*;
 //! use bevy::prelude::*;
 //!
@@ -50,7 +50,7 @@
 //! sampler to nearest when creating your images, or change the default to
 //! always spawn new images with nearest sampling:
 //!
-//! ```no_run
+//! ```rust no_run
 //! use bevy::{prelude::*, render::texture::{ImageSampler, ImageSettings}};
 //! use bevy_tiled_camera::*;
 //!
@@ -105,7 +105,6 @@ impl Plugin for TiledCameraPlugin {
 /// ```
 #[derive(Bundle)]
 pub struct TiledCameraBundle {
-    #[bundle]
     cam2d_bundle: Camera2dBundle,
     tiled_camera: TiledCamera,
 }
@@ -115,7 +114,7 @@ impl TiledCameraBundle {
     pub fn new() -> Self {
         Self {
             cam2d_bundle: Camera2dBundle { ..default() },
-            tiled_camera: TiledCamera::default(),
+            tiled_camera: default(),
         }
     }
 

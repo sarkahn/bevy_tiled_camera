@@ -18,9 +18,9 @@ fn main() {
 
 fn setup(mut commands: Commands, server: Res<AssetServer>) {
     // Defaults to 8x8 pixels per tile
-    commands.spawn_bundle(TiledCameraBundle::pixel_cam([10, 10]));
+    commands.spawn(TiledCameraBundle::pixel_cam([10, 10]));
 
-    commands.spawn_bundle(SpriteBundle {
+    commands.spawn(SpriteBundle {
         texture: server.load("8x8.png"),
         sprite: Sprite {
             anchor: Anchor::TopRight,
@@ -29,7 +29,7 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
         ..default()
     });
 
-    commands.spawn_bundle(SpriteBundle {
+    commands.spawn(SpriteBundle {
         texture: server.load("16x16.png"),
         sprite: Sprite {
             anchor: Anchor::TopLeft,
@@ -38,7 +38,7 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
         ..default()
     });
 
-    commands.spawn_bundle(SpriteBundle {
+    commands.spawn(SpriteBundle {
         texture: server.load("32x32.png"),
         sprite: Sprite {
             anchor: Anchor::BottomCenter,
@@ -47,7 +47,7 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
         ..default()
     });
 
-    commands.spawn_bundle(SpriteBundle {
+    commands.spawn(SpriteBundle {
         sprite: Sprite {
             custom_size: Some(Vec2::splat(500000.0)),
             color: Color::TEAL,
