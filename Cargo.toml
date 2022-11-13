@@ -7,7 +7,7 @@ homepage = "https://github.com/sarkahn/bevy_tiled_camera"
 keywords = ["bevy", "2d", "camera", "pixels"]
 license = "MIT"
 readme = "README.md"
-version = "0.5.0"
+version = "0.5.1"
 
 [features]
 dev = [

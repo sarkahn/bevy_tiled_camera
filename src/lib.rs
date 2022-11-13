@@ -373,8 +373,9 @@ impl TiledCamera {
         let ndc_near = world_to_ndc.transform_point3(-Vec3::Z * camera_near).z;
         let cursor_pos_near = ndc_to_world.transform_point3(cursor_ndc.extend(ndc_near));
         let tile_size = self.grid.tile_size_world();
-        let mut cursor_pos_near = cursor_pos_near.truncate() * tile_size;
-        cursor_pos_near.y = -cursor_pos_near.y;
+        let cursor_pos_near = cursor_pos_near.truncate() * tile_size;
+        // Former viewport issue - had to flip y. Was fixed in 0.9 release
+        //cursor_pos_near.y = -cursor_pos_near.y;
         Some(cursor_pos_near)
     }
 
