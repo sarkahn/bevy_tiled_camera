@@ -9,7 +9,7 @@ use bevy::{
     input::Input,
     math::{IVec2, Vec2},
     prelude::*,
-    render::texture::{Image, ImageSampler, ImageSettings},
+    render::texture::Image,
     sprite::{Sprite, SpriteBundle},
     utils::HashMap,
     DefaultPlugins,
@@ -20,10 +20,7 @@ use bevy_tiled_camera::{TiledCamera, TiledCameraBundle, TiledCameraPlugin};
 fn main() {
     App::new()
         .add_plugin(TiledCameraPlugin)
-        .insert_resource(ImageSettings {
-            default_sampler: ImageSampler::nearest_descriptor(),
-        })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_startup_system(setup)
         .add_system(handle_input)
         .add_system(spawn_sprites)

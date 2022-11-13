@@ -38,6 +38,7 @@
 //! ## Versions
 //! | bevy | bevy_tiled_camera |
 //! | --- | --- |
+//! | 0.9 | 0.5.0 |
 //! | 0.8 | 0.4.0 |
 //! | 0.6 | 0.3.0 |
 //! | 0.5 | 0.2.4 |
@@ -372,7 +373,8 @@ impl TiledCamera {
         let ndc_near = world_to_ndc.transform_point3(-Vec3::Z * camera_near).z;
         let cursor_pos_near = ndc_to_world.transform_point3(cursor_ndc.extend(ndc_near));
         let tile_size = self.grid.tile_size_world();
-        let cursor_pos_near = cursor_pos_near.truncate() * tile_size;
+        let mut cursor_pos_near = cursor_pos_near.truncate() * tile_size;
+        cursor_pos_near.y = -cursor_pos_near.y;
         Some(cursor_pos_near)
     }
 

@@ -1,17 +1,10 @@
-use bevy::{
-    prelude::*,
-    render::texture::{ImageSampler, ImageSettings},
-    sprite::Anchor,
-};
+use bevy::{prelude::*, sprite::Anchor};
 use bevy_tiled_camera::*;
 
 fn main() {
     App::new()
         .add_plugin(TiledCameraPlugin)
-        .insert_resource(ImageSettings {
-            default_sampler: ImageSampler::nearest_descriptor(),
-        })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_startup_system(setup)
         .run()
 }
