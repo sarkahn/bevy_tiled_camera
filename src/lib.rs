@@ -77,7 +77,11 @@ use bevy::{
     render::camera::{ScalingMode, Viewport},
     window::{WindowId, WindowResized, Windows},
 };
-use sark_grids::{point::Point2d, world_grid::WorldGrid, *};
+use sark_grids::{
+    point::{Point2d, Size2d},
+    world_grid::WorldGrid,
+    *,
+};
 
 pub use sark_grids::world_grid::WorldSpace;
 

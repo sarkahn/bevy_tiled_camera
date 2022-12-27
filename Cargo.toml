@@ -16,7 +16,7 @@ dev = [
 
 [dependencies]
 bevy = {path="../bevy", version="0.9", default_features=false, features=["bevy_render", "bevy_core_pipeline"]}
-sark_grids = {path="../sark_grids_rs", version="0.5.5"}
+sark_grids = {path="../sark_grids_rs", version="0.5.6"}
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
