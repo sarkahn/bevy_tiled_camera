@@ -7,7 +7,7 @@ homepage = "https://github.com/sarkahn/bevy_tiled_camera"
 keywords = ["bevy", "2d", "camera", "pixels"]
 license = "MIT"
 readme = "README.md"
-version = "0.5.2"
+version = "0.6.0"
 
 [features]
 dev = [
@@ -16,12 +16,12 @@ dev = [
 
 [dependencies]
 bevy = { version="0.10", default_features=false, features=["bevy_render", "bevy_core_pipeline"]}
-sark_grids = {path="../sark_grids_rs", version="0.5.6"}
+sark_grids = {path="../sark_grids_rs", version="0.5.7"}
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
 
-[dev_dependencies.bevy]
+[dev-dependencies.bevy]
 version = "0.10"
 default-features = false
 features = ["png", "bevy_core_pipeline", "bevy_asset", "bevy_render", "bevy_winit",  "bevy_sprite"]
