@@ -38,11 +38,12 @@
 //! ## Versions
 //! | bevy | bevy_tiled_camera |
 //! | --- | --- |
-//! | 0.9 | 0.5.0 |
-//! | 0.8 | 0.4.0 |
-//! | 0.6 | 0.3.0 |
-//! | 0.5 | 0.2.4 |
-//! | 0.5 | 0.2.3 |
+//! | 0.10 | 0.6.0 |
+//! | 0.9  | 0.5.0 |
+//! | 0.8  | 0.4.0 |
+//! | 0.6  | 0.3.0 |
+//! | 0.5  | 0.2.4 |
+//! | 0.5  | 0.2.3 |
 //!
 //! ## Blurry sprites
 //! By default bevy will create all new images with linear image sampling. This
