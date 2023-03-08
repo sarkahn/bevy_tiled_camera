@@ -75,7 +75,7 @@ use bevy::{
         Plugin,
     },
     render::camera::{ScalingMode, Viewport},
-    window::{WindowId, WindowResized, Windows},
+    window::{PrimaryWindow, Window, WindowResized},
 };
 use sark_grids::{
     point::{Point2d, Size2d},
@@ -435,18 +435,22 @@ impl Default for TiledCamera {
 }
 
 fn on_window_resized(
-    windows: Res<Windows>,
+    primary_window: Query<(Entity, &Window), With<PrimaryWindow>>,
     mut resize_events: EventReader<WindowResized>,
     mut q_cam: Query<(&mut OrthographicProjection, &mut Camera, &mut TiledCamera)>,
 ) {
     // We need to dynamically resize the camera's viewports whenever the window
     // size changes. A resize_event is sent when the window is first created,
     // allowing us to reuse this system for initial setup.
-    for resize_event in resize_events.iter() {
-        if resize_event.id == WindowId::primary() {
-            let window = windows.primary();
+    let (primary_window_entity, primary_window) = primary_window.single();
 
-            let wres = UVec2::new(window.physical_width(), window.physical_height());
+    for resize_event in resize_events.iter() {
+        if resize_event.window == primary_window_entity {
+            let wres = UVec2::new(
+                primary_window.physical_width(),
+                primary_window.physical_height(),
+            );
+
             if let Ok((mut proj, mut cam, mut tiled_cam)) = q_cam.get_single_mut() {
                 update_viewport(&mut tiled_cam, wres, &mut proj, &mut cam);
             }
@@ -455,14 +459,14 @@ fn on_window_resized(
 }
 
 fn on_camera_changed(
-    windows: Res<Windows>,
+    primary_window: Query<&Window, With<PrimaryWindow>>,
     mut q_cam: Query<
         (&mut OrthographicProjection, &mut Camera, &mut TiledCamera),
         Changed<TiledCamera>,
     >,
 ) {
     for (mut proj, mut cam, mut tiled_cam) in q_cam.iter_mut() {
-        if let Some(window) = windows.get_primary() {
+        if let Ok(window) = primary_window.get_single() {
             let wres = UVec2::new(window.physical_width(), window.physical_height());
             update_viewport(&mut tiled_cam, wres, &mut proj, &mut cam);
         }
