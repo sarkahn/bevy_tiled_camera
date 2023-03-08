@@ -1,5 +1,4 @@
-#![feature(let_chains)]
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_tiled_camera::*;
 
 fn main() {
@@ -23,11 +22,17 @@ fn setup(mut commands: Commands) {
     });
 }
 
-fn test(q_cam: Query<(&Camera, &TiledCamera, &GlobalTransform)>, windows: Res<Windows>) {
-    if let Some(window) = windows.get_primary()
-    && let Some(cursor) = window.cursor_position()
-    && let Ok((cam, tcam,t)) = q_cam.get_single()
-    && let Some(cpos) = tcam.screen_to_world(cursor, cam, t) {
-        println!("CPOS {}", cpos);
+fn test(
+    q_cam: Query<(&Camera, &TiledCamera, &GlobalTransform)>,
+    primary_window: Query<&Window, With<PrimaryWindow>>,
+) {
+    if let Ok(window) = primary_window.get_single() {
+        if let Some(cursor) = window.cursor_position() {
+            if let Ok((cam, tcam, t)) = q_cam.get_single() {
+                if let Some(cpos) = tcam.screen_to_world(cursor, cam, t) {
+                    println!("CPOS {}", cpos);
+                }
+            }
+        }
     }
 }
