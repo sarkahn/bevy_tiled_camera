@@ -19,7 +19,7 @@
 //!   // Defaults to 8 pixels per tile.
 //!   let camera_bundle = TiledCameraBundle::unit_cam([80,35]);
 //!
-//!   commands.spawn_bundle(camera_bundle);
+//!   commands.spawn(camera_bundle);
 //! }
 //!
 //! fn main() {
@@ -52,16 +52,13 @@
 //! always spawn new images with nearest sampling:
 //!
 //! ```rust no_run
-//! use bevy::{prelude::*, render::texture::{ImageSampler, ImageSettings}};
+//! use bevy::{prelude::*, render::texture::{ImageSampler, ImagePlugin}};
 //! use bevy_tiled_camera::*;
 //!
 //!
 //! App::new()
 //! // Must be inserted during app initialization, before rendering plugins
-//! .insert_resource(ImageSettings {
-//!     default_sampler: ImageSampler::nearest_descriptor(),
-//! })
-//! .add_plugins(DefaultPlugins)
+//! .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
 //! .add_plugin(TiledCameraPlugin)
 //! .run();
 //!
@@ -105,7 +102,7 @@ impl Plugin for TiledCameraPlugin {
 ///       .with_pixels_per_tile([8,8])
 ///       .with_tile_count([80,45]);
 ///
-///   commands.spawn_bundle(camera_bundle);
+///   commands.spawn(camera_bundle);
 /// }
 /// ```
 #[derive(Bundle)]
