@@ -20,9 +20,8 @@ fn setup(mut commands:Commands) {
 }
 fn main() {
     App::new()
-    .add_plugins(DefaultPlugins)
-    .add_plugin(TiledCameraPlugin)
-    .add_startup_system(setup)
+    .add_plugins((DefaultPlugins, TiledCameraPlugin))
+    .add_systems(Startup, setup)
     .run();
 }
 ```
@@ -33,6 +32,7 @@ Your world space defines how transforms and scaling is treated in your game. You
 ## Versions
 | bevy | bevy_tiled_camera |
 | --- | --- |
+| 0.11 | 0.7.0 |
 | 0.10 | 0.6.0 |
 | 0.9 | 0.5.0 |
 | 0.8 | 0.4.0 |
@@ -44,15 +44,10 @@ Your world space defines how transforms and scaling is treated in your game. You
 By default bevy will create all new images with linear image sampling. This is good for smaller, high resolution images but causes severe blurriness with low resolution images. To fix it you can manually set the image sampler to nearest when creating your images, or change the default to always spawn new images with nearest sampling:
 
 ```rust
-use bevy::{prelude::*, render::texture::{ImageSampler, ImageSettings}};
+use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_tiled_camera::*;
 
 App::new()
-    // Must be inserted during app initialization, before rendering plugins
-    .insert_resource(ImageSettings {
-        default_sampler: ImageSampler::nearest_descriptor(),
-    })
-    .add_plugins(DefaultPlugins)
-    .add_plugin(TiledCameraPlugin)
+    .add_plugins((DefaultPlugins.set(ImagePlugin::default_nearest()), TiledCameraPlugin))
     .run();
 ```

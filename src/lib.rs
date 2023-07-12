@@ -24,9 +24,8 @@
 //!
 //! fn main() {
 //!     App::new()
-//!     .add_plugins(DefaultPlugins)
-//!     .add_plugin(TiledCameraPlugin)
-//!     .add_startup_system(setup)
+//!     .add_plugins((DefaultPlugins, TiledCameraPlugin))
+//!     .add_systems(Startup, setup)
 //!     .run();
 //! }
 //! ```
@@ -53,14 +52,16 @@
 //! always spawn new images with nearest sampling:
 //!
 //! ```rust no_run
-//! use bevy::{prelude::*, render::texture::{ImageSampler, ImagePlugin}};
+//! use bevy::prelude::*;
 //! use bevy_tiled_camera::*;
 //!
 //!
 //! App::new()
 //! // Must be inserted during app initialization, before rendering plugins
-//! .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-//! .add_plugin(TiledCameraPlugin)
+//! .add_plugins((
+//!     DefaultPlugins.set(ImagePlugin::default_nearest()),
+//!     TiledCameraPlugin,
+//! ))
 //! .run();
 //!
 //! ```
@@ -70,7 +71,7 @@ use bevy::{
     math::{IVec2, Mat4, UVec2, Vec2, Vec3},
     prelude::{
         default, App, Camera, Camera2dBundle, Color, GlobalTransform, OrthographicProjection,
-        Plugin,
+        Plugin, Update,
     },
     render::camera::{ScalingMode, Viewport},
     window::{PrimaryWindow, Window, WindowResized},
@@ -87,8 +88,7 @@ pub struct TiledCameraPlugin;
 
 impl Plugin for TiledCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(on_window_resized)
-            .add_system(on_camera_changed);
+        app.add_systems(Update, (on_window_resized, on_camera_changed));
     }
 }
 
