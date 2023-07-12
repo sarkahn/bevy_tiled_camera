@@ -3,9 +3,11 @@ use bevy_tiled_camera::*;
 
 fn main() {
     App::new()
-        .add_plugin(TiledCameraPlugin)
-        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_startup_system(setup)
+        .add_plugins((
+            TiledCameraPlugin,
+            DefaultPlugins.set(ImagePlugin::default_nearest()),
+        ))
+        .add_systems(Startup, setup)
         .run()
 }
 

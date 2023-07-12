@@ -19,11 +19,12 @@ use bevy_tiled_camera::{TiledCamera, TiledCameraBundle, TiledCameraPlugin};
 
 fn main() {
     App::new()
-        .add_plugin(TiledCameraPlugin)
-        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_startup_system(setup)
-        .add_system(handle_input)
-        .add_system(spawn_sprites)
+        .add_plugins((
+            TiledCameraPlugin,
+            DefaultPlugins.set(ImagePlugin::default_nearest()),
+        ))
+        .add_systems(Startup, setup)
+        .add_systems(Update, (handle_input, spawn_sprites))
         //.add_system(update_text)
         .run();
 }
