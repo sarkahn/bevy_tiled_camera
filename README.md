@@ -3,6 +3,7 @@
 [![docs](https://docs.rs/bevy_tiled_camera/badge.svg)](https://docs.rs/bevy_tiled_camera/)
 
 # `Bevy Tiled Camera`
+
 A camera for properly displaying low resolution pixel perfect 2D games in bevy. It works by adjusting the viewport to match a target resolution, which is defined by a tile count and the number of pixels per tile.
 
 ![](images/demo.gif)
