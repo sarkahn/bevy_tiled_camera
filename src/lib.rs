@@ -442,7 +442,7 @@ fn on_window_resized(
     // allowing us to reuse this system for initial setup.
     let (primary_window_entity, primary_window) = primary_window.single();
 
-    for resize_event in resize_events.iter() {
+    for resize_event in resize_events.read() {
         if resize_event.window == primary_window_entity {
             let wres = UVec2::new(
                 primary_window.physical_width(),

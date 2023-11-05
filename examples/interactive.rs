@@ -7,7 +7,7 @@
 use bevy::{
     ecs::prelude::*,
     input::Input,
-    math::{IVec2, Vec2},
+    math::IVec2,
     prelude::*,
     render::texture::Image,
     sprite::{Sprite, SpriteBundle},
@@ -19,13 +19,13 @@ use bevy_tiled_camera::{TiledCamera, TiledCameraBundle, TiledCameraPlugin};
 
 fn main() {
     App::new()
+        .insert_resource(ClearColor(Color::rgb_u8(0, 68, 153)))
         .add_plugins((
             TiledCameraPlugin,
             DefaultPlugins.set(ImagePlugin::default_nearest()),
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, (handle_input, spawn_sprites))
-        //.add_system(update_text)
         .run();
 }
 
@@ -67,8 +67,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let grid = GridEntities(HashMap::default());
     commands.insert_resource(grid);
-
-    //make_ui(&mut commands, asset_server);
 }
 
 fn handle_input(
@@ -146,169 +144,5 @@ fn spawn_sprites(
             };
             commands.spawn((bundle, GridSprite));
         }
-
-        // Blue Background to show viewport border
-        commands.spawn(SpriteBundle {
-            sprite: Sprite {
-                color: Color::rgba(0.0, 0.0, 1.0, 0.015),
-                custom_size: Some(Vec2::ONE * 99999999.0),
-                ..default()
-            },
-            ..default()
-        });
     }
 }
-
-// Need #4007 or #5114 for this to work
-//  - https://github.com/bevyengine/bevy/pull/4007
-//  - https://github.com/bevyengine/bevy/pull/5114
-// fn make_ui(commands: &mut Commands, asset_server: Res<AssetServer>) {
-//     let font_size = 26.0;
-//     let font = asset_server.load("RobotoMono-Regular.ttf");
-//     let color = Color::YELLOW;
-//     let style = || {
-//         TextStyle {
-//             font: font.clone(),
-//             font_size,
-//             color,
-//         }
-//     };
-//     let alignment = TextAlignment {
-//         vertical: VerticalAlign::Top,
-//         horizontal: HorizontalAlign::Left,
-//     };
-
-//     let layer = RenderLayers::layer(1);
-//     commands.spawn_bundle(Camera2dBundle {
-//         camera: Camera {
-//             priority: -1,
-//             ..default()
-//         },
-//         ..default()
-//     }).insert(layer);
-
-//     commands.spawn_bundle(Text2dBundle {
-//         text: Text {
-//             sections: vec![
-//                 TextSection {
-//                     value: "Controls:\n  -Resize the window to see auto-scaling.".to_string(),
-//                     style: style(),
-//                 },
-//                 TextSection {
-//                     value: "\n  -Arrow keys to adjust number of tiles.\n  -Tab to change sprites."
-//                         .to_string(),
-//                         style: style(),
-//                 },
-//                 // Tile count/ppu
-//                 TextSection {
-//                     value: String::default(),
-//                     style: style(),
-//                 },
-//                 // Window resolution
-//                 TextSection {
-//                     value: String::default(),
-//                     style: style(),
-//                 },
-//                 // Camera zoom
-//                 TextSection {
-//                     value: String::default(),
-//                     style: style(),
-//                 },
-//                 // Cursor world pos
-//                 TextSection {
-//                     value: String::default(),
-//                     style: style(),
-//                 },
-//                 // Cursor tile pos
-//                 TextSection {
-//                     value: String::default(),
-//                     style: style(),
-//                 },
-//             ],
-//             alignment,
-//         },
-//         ..default()
-//     }).insert(layer);
-// }
-
-// fn update_text(
-//     mut q_text: Query<&mut Text>,
-//     windows: Res<Windows>,
-//     q_camera: Query<(&Camera, &GlobalTransform, &TiledCamera)>,
-// ) {
-//     let mut text = q_text.single_mut();
-
-//     if let Some(window) = windows.get_primary() {
-//         if let Some(pos) = window.cursor_position() {
-//             for (cam, t, tcam) in q_camera.iter() {
-//                 if let Some(cursor_world) = tcam.screen_to_world(pos, &cam, &t) {
-//                     let zoom = tcam.zoom();
-//                     let tile_count = tcam.tile_count;
-//                     let ppu = tcam.pixels_per_tile;
-//                     let target_res = tcam.target_resolution();
-//                     let cursor_x = format!("{:.2}", cursor_world.x);
-//                     let cursor_y = format!("{:.2}", cursor_world.y);
-//                     let window_res = Vec2::new(window.width(), window.height()).as_uvec2();
-
-//                     text.sections[1].value = format!(
-//                         "\nProjection tiles: {}. Pixels Per Tile: {}",
-//                         tile_count, ppu
-//                     );
-
-//                     text.sections[2].value = format!(
-//                         "\nTarget resolution: {}.\nWindow resolution: {}. ",
-//                         target_res, window_res
-//                     );
-
-//                     text.sections[3].value = format!("\nProjection zoom: {}", zoom);
-
-//                     text.sections[4].value =
-//                         format!("\nCursor world pos: [{},{}]", cursor_x, cursor_y);
-
-//                     text.sections[5].value =
-//                         format!("\nCursor tile pos: {}", tcam.world_to_tile(t, cursor_world));
-//                 }
-//             }
-//         }
-//     }
-// }
-
-// fn cursor_system(
-//     input: Res<Input<MouseButton>>,
-//     windows: Res<Windows>,
-//     q_camera: Query<(&Camera, &GlobalTransform, &TiledProjection)>,
-//     mut q_cursor: Query<(&mut Transform, &mut Visibility), With<Cursor>>,
-//     mut q_sprite: Query<&mut Sprite>,
-//     grid: Res<GridEntities>,
-// ) {
-//     let window = windows.get_primary().unwrap();
-
-//     if let Some(pos) = window.cursor_position() {
-//         for (cam, cam_transform, proj) in q_camera.iter() {
-//             if let Some(p) = proj.screen_to_world(cam, &windows, cam_transform, pos) {
-//                 if let Some(mut p) = proj.world_to_tile_center(cam_transform, p) {
-//                     p.z = 2.0;
-
-//                     let (mut cursor_transform, mut v) = q_cursor.single_mut();
-//                     v.is_visible = true;
-
-//                     cursor_transform.translation = p;
-
-//                     if input.just_pressed(MouseButton::Left) {
-//                         let i = proj.world_to_tile(cam_transform, p).unwrap();
-//                         if let Some(entity) = grid.0.get(&i) {
-//                             if let Ok(mut sprite) = q_sprite.get_mut(entity.clone()) {
-//                                 sprite.color = Color::rgb_u8(255, 0, 255);
-//                             }
-//                         }
-//                     }
-
-//                     return;
-//                 }
-//             }
-//         }
-//     }
-
-//     let (_, mut v) = q_cursor.single_mut();
-//     v.is_visible = false;
-// }v

@@ -41,13 +41,4 @@ fn setup(mut commands: Commands, server: Res<AssetServer>) {
         },
         ..default()
     });
-
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            custom_size: Some(Vec2::splat(500000.0)),
-            color: Color::TEAL,
-            ..default()
-        },
-        ..default()
-    });
 }

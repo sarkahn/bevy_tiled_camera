@@ -33,6 +33,7 @@ Your world space defines how transforms and scaling is treated in your game. You
 ## Versions
 | bevy | bevy_tiled_camera |
 | --- | --- |
+| 0.12 | 0.8.0 |
 | 0.11 | 0.7.0 |
 | 0.10 | 0.6.0 |
 | 0.9 | 0.5.0 |
