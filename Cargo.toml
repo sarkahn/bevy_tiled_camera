@@ -7,30 +7,43 @@ homepage = "https://github.com/sarkahn/bevy_tiled_camera"
 keywords = ["bevy", "2d", "camera", "pixels"]
 license = "MIT"
 readme = "README.md"
-version = "0.8.0"
+version = "0.9.0"
 
 [features]
-dev = [
-    "bevy/dynamic_linking",
-]
+dev = ["bevy/dynamic_linking"]
 
 [dependencies]
-sark_grids = {version="0.5.8"}
+sark_grids = { version = "0.5.9" }
 
 [dependencies.bevy]
-version="0.12"
-default_features=false
-features=["bevy_render", "bevy_core_pipeline"]
+version = "0.13"
+default_features = false
+features = ["bevy_render", "bevy_core_pipeline"]
 
 [dev-dependencies]
 assert_approx_eq = "1.1.0"
 
 [dev-dependencies.bevy]
-version = "0.12"
-default-features=false
-features = ["png", "bevy_core_pipeline", "bevy_asset", "bevy_render", "bevy_winit",  "bevy_sprite"]
+version = "0.13"
+default-features = false
+features = [
+    "png",
+    "bevy_core_pipeline",
+    "bevy_asset",
+    "bevy_render",
+    "bevy_winit",
+    "bevy_sprite",
+]
 
 [target.'cfg(unix)'.dev-dependencies.bevy]
-version = "0.12"
+version = "0.13"
 default-features = false
-features = ["png", "bevy_core_pipeline", "bevy_asset", "bevy_render", "bevy_winit",  "bevy_sprite", "x11"]
+features = [
+    "png",
+    "bevy_core_pipeline",
+    "bevy_asset",
+    "bevy_render",
+    "bevy_winit",
+    "bevy_sprite",
+    "x11",
+]

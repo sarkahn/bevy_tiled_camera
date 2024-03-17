@@ -37,6 +37,9 @@
 //! ## Versions
 //! | bevy | bevy_tiled_camera |
 //! | --- | --- |
+//! | 0.13 | 0.9.0 |
+//! | 0.12 | 0.8.0 |
+//! | 0.11 | 0.7.0 |
 //! | 0.10 | 0.6.0 |
 //! | 0.9  | 0.5.0 |
 //! | 0.8  | 0.4.0 |
@@ -66,14 +69,13 @@
 //!
 //! ```
 use bevy::{
-    core_pipeline::clear_color::ClearColorConfig,
     ecs::prelude::*,
     math::{IVec2, Mat4, UVec2, Vec2, Vec3},
     prelude::{
         default, App, Camera, Camera2dBundle, Color, GlobalTransform, OrthographicProjection,
         Plugin, Update,
     },
-    render::camera::{ScalingMode, Viewport},
+    render::camera::{ClearColorConfig, ScalingMode, Viewport},
     window::{PrimaryWindow, Window, WindowResized},
 };
 use sark_grids::{
@@ -143,7 +145,7 @@ impl TiledCameraBundle {
 
     /// Set the camera's clear color.
     pub fn with_clear_color(mut self, color: Color) -> Self {
-        self.cam2d_bundle.camera_2d.clear_color = ClearColorConfig::Custom(color);
+        self.cam2d_bundle.camera.clear_color = ClearColorConfig::Custom(color);
         self
     }
 

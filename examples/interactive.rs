@@ -4,16 +4,7 @@
 /// Spacebar - Toggle camera between centered or bottom-left origin
 /// Arrow Keys - Adjust the number of tiles
 /// Tab - Change the current tile textures
-use bevy::{
-    ecs::prelude::*,
-    input::Input,
-    math::IVec2,
-    prelude::*,
-    render::texture::Image,
-    sprite::{Sprite, SpriteBundle},
-    utils::HashMap,
-    DefaultPlugins,
-};
+use bevy::{prelude::*, utils::HashMap};
 
 use bevy_tiled_camera::{TiledCamera, TiledCameraBundle, TiledCameraPlugin};
 
@@ -70,25 +61,25 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 fn handle_input(
-    input: Res<Input<KeyCode>>,
+    input: Res<ButtonInput<KeyCode>>,
     mut q_cam: Query<&mut TiledCamera>,
     mut sprite_textures: ResMut<SpriteTextures>,
 ) {
-    if input.just_pressed(KeyCode::Up) {
+    if input.just_pressed(KeyCode::ArrowUp) {
         q_cam.single_mut().tile_count.y += 1;
     }
 
-    if input.just_pressed(KeyCode::Down) {
+    if input.just_pressed(KeyCode::ArrowDown) {
         let count = &mut q_cam.single_mut().tile_count;
         count.y = count.y.saturating_sub(1).max(1);
     }
 
-    if input.just_pressed(KeyCode::Left) {
+    if input.just_pressed(KeyCode::ArrowLeft) {
         let count = &mut q_cam.single_mut().tile_count;
         count.x = count.x.saturating_sub(1).max(1);
     }
 
-    if input.just_pressed(KeyCode::Right) {
+    if input.just_pressed(KeyCode::ArrowRight) {
         q_cam.single_mut().tile_count.x += 1;
     }
 
@@ -102,7 +93,7 @@ fn handle_input(
         };
     }
 
-    if input.just_pressed(KeyCode::W) {
+    if input.just_pressed(KeyCode::KeyW) {
         let cam = q_cam.single_mut();
         let space = cam.world_space();
         q_cam.single_mut().set_world_space(space.other());

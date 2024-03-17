@@ -17,7 +17,7 @@ fn setup(mut commands:Commands) {
   // Sets up a camera to display 80 x 35 tiles.
   // Defaults to 8 pixels per tile with WorldSpace::Units.
   let camera_bundle = TiledCameraBundle::unit_cam([80,35]);
-  commands.spawn_bundle(camera_bundle);
+  commands.spawn(camera_bundle);
 }
 fn main() {
     App::new()
@@ -33,6 +33,7 @@ Your world space defines how transforms and scaling is treated in your game. You
 ## Versions
 | bevy | bevy_tiled_camera |
 | --- | --- |
+| 0.13 | 0.9.0 |
 | 0.12 | 0.8.0 |
 | 0.11 | 0.7.0 |
 | 0.10 | 0.6.0 |
@@ -46,7 +47,7 @@ Your world space defines how transforms and scaling is treated in your game. You
 By default bevy will create all new images with linear image sampling. This is good for smaller, high resolution images but causes severe blurriness with low resolution images. To fix it you can manually set the image sampler to nearest when creating your images, or change the default to always spawn new images with nearest sampling:
 
 ```rust
-use bevy::{prelude::*, render::texture::ImageSettings};
+use bevy::prelude::*;
 use bevy_tiled_camera::*;
 
 App::new()
