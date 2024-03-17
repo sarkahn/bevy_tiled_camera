@@ -2341,6 +2341,8 @@ dependencies = [
 [[package]]
 name = "sark_grids"
 version = "0.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b9e1548a31ab2cd9f278fbff74fdb344ab027811e16ea82b725278fc7a1d3ae"
 dependencies = [
  "glam",
  "itertools",
